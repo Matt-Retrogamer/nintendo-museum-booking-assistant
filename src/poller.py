@@ -19,6 +19,7 @@ class AvailabilityPoller:
         self.playwright = None
         self.browser = None
         self._running = False
+        self._has_error = False  # Track error state for recovery logging
 
     async def __aenter__(self) -> "AvailabilityPoller":
         """Async context manager entry."""
@@ -81,10 +82,19 @@ class AvailabilityPoller:
             available_dates = await self._check_dates_on_page(page, target_dates)
 
             await page.close()
+
+            # Log recovery if we were previously in an error state
+            if self._has_error:
+                logger.info("✅ System recovered - availability checking is back to normal")
+                self._has_error = False
+
             return available_dates
 
         except Exception as e:
             logger.error(f"Error while checking availability: {e}")
+            if not self._has_error:
+                self._has_error = True
+                logger.warning("⚠️  System experiencing issues - will continue trying...")
             return set()
 
     async def _check_dates_on_page(self, page, target_dates: list[str]) -> set[str]:
@@ -194,6 +204,9 @@ class AvailabilityPoller:
                 break
             except Exception as e:
                 logger.error(f"Error during polling: {e}")
+                if not self._has_error:
+                    self._has_error = True
+                    logger.warning("⚠️  Polling encountering issues - will retry...")
                 # Continue polling despite errors
                 await asyncio.sleep(self.config.polling.interval_seconds)
 

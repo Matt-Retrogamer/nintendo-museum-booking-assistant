@@ -222,3 +222,36 @@ class TestAvailabilityPoller:
         poller._running = True
         poller.stop_polling()
         assert poller._running is False
+
+    @pytest.mark.asyncio
+    async def test_error_recovery_logging(self, mock_config):
+        """Test that recovery is logged when system goes from error to success."""
+        with patch("src.poller.async_playwright") as mock_playwright:
+            # Setup mocks
+            mock_playwright_instance = AsyncMock()
+            mock_browser = AsyncMock()
+            mock_page = AsyncMock()
+
+            mock_playwright.return_value.start = AsyncMock(
+                return_value=mock_playwright_instance
+            )
+            mock_playwright_instance.chromium.launch.return_value = mock_browser
+            mock_browser.new_page.return_value = mock_page
+
+            async with AvailabilityPoller(mock_config) as poller:
+                # First call fails
+                mock_page.goto.side_effect = Exception("Network error")
+                result1 = await poller.check_availability(["2025-09-25"])
+                assert result1 == set()
+                assert poller._has_error is True
+
+                # Second call succeeds - should log recovery
+                mock_page.goto.side_effect = None
+                mock_page.goto = AsyncMock()
+                mock_page.wait_for_selector = AsyncMock()
+                mock_page.query_selector_all.return_value = []
+                mock_page.query_selector.return_value = None
+
+                result2 = await poller.check_availability(["2025-09-25"])
+                assert result2 == set()
+                assert poller._has_error is False  # Should be reset after recovery
