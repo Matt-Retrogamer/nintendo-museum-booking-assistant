@@ -5,6 +5,8 @@ tasks:
     desc: Install project dependencies
     cmds:
       - uv sync --dev
+      - uv run playwright install chromium
+      - uv run playwright install-deps chromium
 
   run:
     desc: Run the Nintendo Museum booking assistant

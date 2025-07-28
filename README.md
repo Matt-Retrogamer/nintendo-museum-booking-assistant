@@ -31,6 +31,7 @@ The assistant uses Playwright to launch a headless browser that loads the Ninten
 - Python 3.11 or higher
 - [uv](https://github.com/astral-sh/uv) for dependency management
 - [Task](https://taskfile.dev) for running common tasks (optional but recommended)
+- Playwright browser binaries (automatically installed with `task install`)
 
 ## Installation
 
@@ -40,14 +41,21 @@ git clone <repository-url>
 cd nintendo-museum-booking-assistant
 ```
 
-2. Install dependencies using uv:
+2. Install all dependencies (Python packages + browser binaries):
 ```bash
-uv sync --dev
+task install
 ```
 
-3. Install Playwright browser:
+This will automatically:
+- Install Python dependencies with `uv sync --dev`
+- Download Playwright Chromium browser binary
+- Install system dependencies for headless browser operation
+
+**Alternative manual installation:**
 ```bash
+uv sync --dev
 uv run playwright install chromium
+uv run playwright install-deps chromium
 ```
 
 ## Quick Start
@@ -56,8 +64,7 @@ uv run playwright install chromium
 ```bash
 git clone <repository-url>
 cd nintendo-museum-booking-assistant
-uv sync --dev
-uv run playwright install chromium
+task install
 ```
 
 2. **Create configuration:**
@@ -396,8 +403,18 @@ Solution: Verify your IFTTT webhook URL and internet connection.
 **Browser automation issues**
 ```
 Error: Playwright browser not found
+Error: Browser type does not exist, please run playwright install
 ```
-Solution: Install Playwright browsers with `uv run playwright install chromium`
+Solution: Install Playwright browsers. If you used `task install`, browsers should already be installed. Otherwise run:
+```bash
+uv run playwright install chromium
+uv run playwright install-deps chromium
+```
+
+Or simply run the complete installation:
+```bash
+task install
+```
 
 **Date cells showing "soldOut" instead of availability**
 ```
