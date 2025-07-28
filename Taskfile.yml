@@ -1,0 +1,77 @@
+version: 3
+
+tasks:
+  install:
+    desc: Install project dependencies
+    cmds:
+      - uv sync --dev
+
+  run:
+    desc: Run the Nintendo Museum booking assistant
+    cmds:
+      - uv run python -m src.main
+
+  run-debug:
+    desc: Run the Nintendo Museum booking assistant in debug mode
+    cmds:
+      - |
+        uv run python -c "
+        import os
+        os.environ['LOG_LEVEL'] = 'DEBUG'
+        import asyncio
+        from src.main import main
+        asyncio.run(main())
+        "
+
+  test-webhook:
+    desc: Test the webhook configuration by sending a test notification
+    cmds:
+      - |
+        uv run python -c "
+        import asyncio
+        from src.config import load_config
+        from src.notifier import WebhookNotifier
+        async def test_webhook():
+            config = load_config()
+            async with WebhookNotifier(config) as notifier:
+                success = await notifier.test_webhook()
+                print('✅ Webhook test successful!' if success else '❌ Webhook test failed!')
+        asyncio.run(test_webhook())
+        "
+
+  test:
+    desc: Run tests
+    cmds:
+      - uv run pytest
+
+  test-cov:
+    desc: Run tests with coverage report
+    cmds:
+      - uv run pytest --cov=src --cov-report=html --cov-report=term
+
+  lint:
+    desc: Run linting
+    cmds:
+      - uv run ruff check src tests
+      - uv run mypy src
+
+  format:
+    desc: Format code
+    cmds:
+      - uv run ruff format src tests
+
+  clean:
+    desc: Clean temporary files
+    cmds:
+      - rm -rf .pytest_cache
+      - rm -rf htmlcov
+      - rm -rf .coverage
+      - find . -type d -name "__pycache__" -exec rm -rf {} +
+      - find . -type f -name "*.pyc" -delete
+
+  dev:
+    desc: Development setup - install dependencies and run initial checks
+    cmds:
+      - task: install
+      - task: lint
+      - task: test

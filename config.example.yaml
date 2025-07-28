@@ -1,0 +1,32 @@
+# Example configuration for Nintendo Museum Booking Assistant
+# Copy this file to config.yaml and update with your settings
+
+# Dates to monitor for available reservations
+# Format: YYYY-MM-DD
+target_dates:
+  - "2025-09-25"  # Replace with your desired dates
+  - "2025-09-26"
+  - "2025-09-27"
+
+# Polling configuration
+polling:
+  interval_seconds: 10  # How often to check for availability (recommended: 10-30 seconds)
+  page_load_delay_seconds: 2  # Wait time after page loads before checking
+
+# Webhook configuration for IFTTT
+webhook:
+  # Replace YOUR_IFTTT_KEY with your actual IFTTT webhook key
+  # Get your key from: https://ifttt.com/maker_webhooks
+  url: "https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/YOUR_IFTTT_KEY"
+  event_name: "nintendo_museum_available"
+  timeout_seconds: 30
+
+# Website configuration (usually no need to change)
+website:
+  url: "https://museum-tickets.nintendo.com/en/calendar"
+  availability_class: "sale"  # CSS class indicating availability
+
+# Logging configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
