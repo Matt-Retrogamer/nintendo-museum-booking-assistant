@@ -20,6 +20,10 @@ webhook:
   url: "https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/YOUR_IFTTT_KEY"
   event_name: "nintendo_museum_available"
   timeout_seconds: 30
+  # Heartbeat configuration (optional)
+  # Send a heartbeat notification every N hours to confirm the service is running
+  # Set to 0 or omit to disable heartbeat notifications
+  heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
 
 # Website configuration (usually no need to change)
 website:

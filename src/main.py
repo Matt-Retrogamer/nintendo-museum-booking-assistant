@@ -73,6 +73,11 @@ class BookingAssistant:
         else:
             logger.debug("Notification not sent (rate limited, no new availability, or error)")
 
+        # Check if heartbeat notification is needed
+        heartbeat_sent = await self.notification_manager.send_heartbeat_if_needed()
+        if heartbeat_sent:
+            logger.info("Heartbeat notification sent successfully")
+
     async def run(self) -> None:
         """Run the main application loop."""
         logger.info("Starting Nintendo Museum Booking Assistant")

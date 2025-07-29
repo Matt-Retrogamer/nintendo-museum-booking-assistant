@@ -1,6 +1,6 @@
 """Tests for webhook notification functionality."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -207,3 +207,95 @@ class TestNotificationManager:
         time_since_last = (now - manager.last_notification_time).total_seconds()
 
         assert time_since_last < manager.min_notification_interval
+
+    async def test_send_heartbeat_enabled(self, mock_config):
+        """Test heartbeat sending when enabled."""
+        # Configure heartbeat interval
+        mock_config.webhook.heartbeat_interval_hours = 24
+        
+        manager = NotificationManager(mock_config)
+        
+        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_heartbeat.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+            
+            # First call should send heartbeat (no previous heartbeat)
+            result = await manager.send_heartbeat_if_needed()
+            assert result is True
+            mock_notifier.send_heartbeat.assert_called_once()
+            
+            # Immediate second call should not send heartbeat (too soon)
+            mock_notifier.reset_mock()
+            result2 = await manager.send_heartbeat_if_needed()
+            assert result2 is False
+            mock_notifier.send_heartbeat.assert_not_called()
+
+    async def test_send_heartbeat_disabled(self, mock_config):
+        """Test heartbeat not sending when disabled."""
+        # Disable heartbeat
+        mock_config.webhook.heartbeat_interval_hours = 0
+        
+        manager = NotificationManager(mock_config)
+        
+        # Should not send heartbeat when disabled
+        result = await manager.send_heartbeat_if_needed()
+        assert result is False
+
+    async def test_send_heartbeat_after_interval(self, mock_config):
+        """Test heartbeat sending after interval has passed."""
+        mock_config.webhook.heartbeat_interval_hours = 1  # 1 hour for easier testing
+        
+        manager = NotificationManager(mock_config)
+        
+        # Set last heartbeat time to 2 hours ago
+        manager.last_heartbeat_time = datetime.now() - timedelta(hours=2)
+        
+        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_heartbeat.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+            
+            # Should send heartbeat since interval has passed
+            result = await manager.send_heartbeat_if_needed()
+            assert result is True
+            mock_notifier.send_heartbeat.assert_called_once()
+
+    async def test_send_heartbeat_failure(self, mock_config):
+        """Test heartbeat failure handling."""
+        mock_config.webhook.heartbeat_interval_hours = 24
+        
+        manager = NotificationManager(mock_config)
+        
+        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_heartbeat.return_value = False  # Simulate failure
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+            
+            # Should return False on failure
+            result = await manager.send_heartbeat_if_needed()
+            assert result is False
+            
+            # Should not update last heartbeat time on failure
+            assert manager.last_heartbeat_time is None
+
+    async def test_webhook_notifier_send_heartbeat(self, mock_config):
+        """Test WebhookNotifier send_heartbeat method."""
+        with patch('aiohttp.ClientSession.post') as mock_post:
+            mock_response = AsyncMock()
+            mock_response.status = 200
+            mock_post.return_value.__aenter__.return_value = mock_response
+            
+            async with WebhookNotifier(mock_config) as notifier:
+                result = await notifier.send_heartbeat()
+                assert result is True
+                
+                # Verify the correct payload was sent
+                mock_post.assert_called_once()
+                call_args = mock_post.call_args
+                
+                # Check that the JSON payload contains heartbeat data
+                json_data = call_args[1]['json']
+                assert json_data['value1'] == "HEARTBEAT - Nintendo Museum Booking Assistant"
+                assert json_data['value2'] == "Service is running normally"
+                assert 'value3' in json_data  # Timestamp should be present

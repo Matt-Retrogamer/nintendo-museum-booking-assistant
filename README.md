@@ -11,6 +11,7 @@ This project ports the core functionality from the original [Nintendo Museum Res
 - 🌐 **JavaScript Support**: Uses headless browser automation to handle dynamic content
 - 📱 **IFTTT Integration**: Send notifications via webhook to trigger IFTTT automations
 - 🔔 **Smart Notifications**: Get alerted when dates become available, disappear, and reappear (with grace period)
+- 💓 **Heartbeat Monitoring**: Periodic "alive" notifications to confirm service is running
 - ⚙️ **Configurable**: Customizable polling intervals and target dates
 - 🛡️ **Robust Error Handling**: Graceful handling of network errors and rate limiting
 - 🔒 **Security**: Sensitive information (webhook URLs, API keys) are masked in log output
@@ -357,6 +358,11 @@ webhook:
   url: "https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/YOUR_IFTTT_KEY"
   event_name: "nintendo_museum_available"
   timeout_seconds: 30
+  
+  # Heartbeat configuration (optional)
+  # Send a heartbeat notification every N hours to confirm service is running
+  # Set to 0 or omit to disable heartbeat notifications
+  heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
 
 # Website configuration
 website:
@@ -424,6 +430,33 @@ The system includes a **5-minute grace period** between notifications to prevent
 ```
 
 This behavior ensures you don't miss opportunities while avoiding notification fatigue.
+
+### Heartbeat Notifications
+
+The system can send periodic "heartbeat" notifications to confirm it's still running and monitoring for availability. This is especially useful for long-running deployments on VPS/Docker where you want to ensure the service hasn't crashed or stopped.
+
+**Configuration:**
+```yaml
+webhook:
+  heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
+  # Set to 0 or omit to disable heartbeat notifications
+```
+
+**Heartbeat behavior:**
+- Sends a periodic notification at the configured interval
+- Independent of availability notifications
+- Uses the same webhook endpoint with different payload
+- First heartbeat sent after the interval period (not immediately on startup)
+- Disabled by default (set `heartbeat_interval_hours: 0` or omit the field)
+
+**Heartbeat webhook payload:**
+```json
+{
+  "value1": "HEARTBEAT - Nintendo Museum Booking Assistant",
+  "value2": "Service is running normally",
+  "value3": "2025-07-28T14:30:00.123456"  // Timestamp of heartbeat
+}
+```
 
 ### IFTTT Webhook Payload
 
@@ -640,10 +673,10 @@ Run tests with coverage:
 task test-cov
 ```
 
-Current test coverage: **82%** with **35 comprehensive tests** including:
+Current test coverage: **82%** with **40 comprehensive tests** including:
 - **5 configuration tests** covering validation and error cases
 - **9 polling tests** including browser automation and error recovery  
-- **10 notification tests** covering webhooks and smart notification behavior
+- **15 notification tests** covering webhooks, smart notification behavior, and heartbeat functionality
 - **6 main application tests** covering workflow and signal handling
 - **5 URL masking tests** for security and privacy
 

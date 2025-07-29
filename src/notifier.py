@@ -126,15 +126,48 @@ class WebhookNotifier:
             logger.error(f"Webhook test failed: {e}")
             return False
 
+    async def send_heartbeat(self) -> bool:
+        """
+        Send a heartbeat notification to confirm the service is still running.
+
+        Returns:
+            True if heartbeat was sent successfully, False otherwise
+        """
+        if not self.session:
+            raise RuntimeError("Notifier must be used as an async context manager")
+
+        logger.info("Sending heartbeat notification...")
+
+        # Create heartbeat-specific payload
+        payload = {
+            "value1": "HEARTBEAT - Nintendo Museum Booking Assistant",
+            "value2": "Service is running normally",
+            "value3": datetime.now().isoformat(),
+        }
+
+        try:
+            async with self.session.post(
+                self.config.webhook.url, json=payload
+            ) as response:
+                response.raise_for_status()
+                response_text = await response.text()
+
+                logger.info(f"Heartbeat notification sent successfully. Response: {response_text}")
+                return True
+
+        except Exception as e:
+            logger.error(f"Heartbeat notification failed: {e}")
+            return False
+
 
 class NotificationManager:
-    """Manages notification sending with rate limiting and state tracking."""
+    """Manages notification state and prevents duplicate/spam notifications."""
 
     def __init__(self, config: Config):
-        """Initialize the notification manager."""
         self.config = config
         self.previous_available_dates: set[str] = set()
         self.last_notification_time: datetime | None = None
+        self.last_heartbeat_time: datetime | None = None
         self.min_notification_interval = 300  # 5 minutes between notifications
 
     async def notify_if_needed(self, available_dates: set[str]) -> bool:
@@ -185,3 +218,35 @@ class NotificationManager:
             # Update state regardless of notification success
             self.previous_available_dates = available_dates.copy()
             return success
+
+    async def send_heartbeat_if_needed(self) -> bool:
+        """
+        Send heartbeat notification if enough time has passed since last heartbeat.
+
+        Returns:
+            True if heartbeat was sent, False otherwise
+        """
+        if not self.config.webhook.heartbeat_interval_hours:
+            # Heartbeat disabled
+            return False
+
+        now = datetime.now()
+        heartbeat_interval_seconds = self.config.webhook.heartbeat_interval_hours * 3600
+
+        # Check if it's time for a heartbeat
+        if (
+            self.last_heartbeat_time is None
+            or (now - self.last_heartbeat_time).total_seconds() >= heartbeat_interval_seconds
+        ):
+            async with WebhookNotifier(self.config) as notifier:
+                success = await notifier.send_heartbeat()
+                
+                if success:
+                    self.last_heartbeat_time = now
+                    logger.info("Heartbeat notification sent")
+                else:
+                    logger.warning("Failed to send heartbeat notification")
+                
+                return success
+
+        return False

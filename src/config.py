@@ -51,6 +51,7 @@ class WebhookConfig(BaseModel):
     url: str
     event_name: str = "nintendo_museum_available"
     timeout_seconds: int = 30
+    heartbeat_interval_hours: int = 24
 
     @field_validator("timeout_seconds")
     @classmethod
@@ -58,6 +59,14 @@ class WebhookConfig(BaseModel):
         """Validate webhook timeout."""
         if v < 1:
             raise ValueError("Webhook timeout must be at least 1 second")
+        return v
+
+    @field_validator("heartbeat_interval_hours")
+    @classmethod
+    def validate_heartbeat_interval(cls, v: int) -> int:
+        """Validate heartbeat interval."""
+        if v < 0:
+            raise ValueError("Heartbeat interval must be 0 (disabled) or positive")
         return v
 
 
