@@ -105,32 +105,95 @@ class TestWebhookNotifier:
 class TestNotificationManager:
     """Test notification management functionality."""
 
-    def test_notify_if_needed_new_dates(self, mock_config):
-        """Test notification for new dates."""
+    @pytest.mark.asyncio
+    async def test_notify_if_needed_new_dates(self, mock_config):
+        """Test notification for newly available dates."""
         manager = NotificationManager(mock_config)
 
-        # First call with new dates
-        with patch.object(manager, "notified_dates", set()):
-            with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
-                mock_notifier = AsyncMock()
-                mock_notifier.send_notification.return_value = True
-                mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_notification.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
-                # This would normally be tested in an async function
-                # For this test, we're checking the logic without async
-                new_dates = {"2025-09-25"}
-                assert new_dates - manager.notified_dates == new_dates
+            # First call with available dates
+            available_dates = {"2025-09-25"}
+            result = await manager.notify_if_needed(available_dates)
 
-    def test_notify_if_needed_no_new_dates(self, mock_config):
-        """Test notification when no new dates are available."""
+            assert result is True
+            mock_notifier.send_notification.assert_called_once_with({"2025-09-25"})
+
+    @pytest.mark.asyncio
+    async def test_notify_if_needed_no_change(self, mock_config):
+        """Test notification when availability doesn't change."""
         manager = NotificationManager(mock_config)
-        manager.notified_dates = {"2025-09-25"}
+        
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_notification.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
-        # Call with same dates - should not notify
-        available_dates = {"2025-09-25"}
-        new_dates = available_dates - manager.notified_dates
+            # First call - should notify
+            available_dates = {"2025-09-25"}
+            result1 = await manager.notify_if_needed(available_dates)
+            assert result1 is True
 
-        assert new_dates == set()
+            # Second call with same dates - should not notify
+            result2 = await manager.notify_if_needed(available_dates)
+            assert result2 is False
+
+            # Should only be called once
+            assert mock_notifier.send_notification.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_notify_if_needed_reappearing_dates(self, mock_config):
+        """Test notification for dates that disappear and reappear."""
+        manager = NotificationManager(mock_config)
+        
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_notification.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+
+            # First: Date becomes available
+            result1 = await manager.notify_if_needed({"2025-09-25"})
+            assert result1 is True
+            
+            # Second: Date disappears
+            result2 = await manager.notify_if_needed(set())
+            assert result2 is False
+            
+            # Third: Date reappears (should notify again, but rate limited)
+            result3 = await manager.notify_if_needed({"2025-09-25"})
+            assert result3 is False  # Rate limited
+            
+            # Should be called only once due to rate limiting
+            assert mock_notifier.send_notification.call_count == 1
+
+    @pytest.mark.asyncio 
+    async def test_notify_if_needed_reappearing_dates_after_grace_period(self, mock_config):
+        """Test notification for dates that reappear after grace period."""
+        manager = NotificationManager(mock_config)
+        manager.min_notification_interval = 0  # No rate limiting for this test
+        
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_notification.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+
+            # First: Date becomes available
+            result1 = await manager.notify_if_needed({"2025-09-25"})
+            assert result1 is True
+            
+            # Second: Date disappears
+            result2 = await manager.notify_if_needed(set())
+            assert result2 is False
+            
+            # Third: Date reappears (should notify again)
+            result3 = await manager.notify_if_needed({"2025-09-25"})
+            assert result3 is True
+            
+            # Should be called twice
+            assert mock_notifier.send_notification.call_count == 2
 
     def test_rate_limiting_logic(self, mock_config):
         """Test rate limiting logic."""

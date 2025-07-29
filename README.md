@@ -10,10 +10,11 @@ This project ports the core functionality from the original [Nintendo Museum Res
 - 🔄 **Asynchronous Polling**: Efficient, non-blocking website monitoring using Playwright  
 - 🌐 **JavaScript Support**: Uses headless browser automation to handle dynamic content
 - 📱 **IFTTT Integration**: Send notifications via webhook to trigger IFTTT automations
+- 🔔 **Smart Notifications**: Get alerted when dates become available, disappear, and reappear (with grace period)
 - ⚙️ **Configurable**: Customizable polling intervals and target dates
 - 🛡️ **Robust Error Handling**: Graceful handling of network errors and rate limiting
-- � **Security**: Sensitive information (webhook URLs, API keys) are masked in log output
-- �📋 **Debug Mode**: Enhanced logging and troubleshooting capabilities
+- 🔒 **Security**: Sensitive information (webhook URLs, API keys) are masked in log output
+- 📋 **Debug Mode**: Enhanced logging and troubleshooting capabilities
 - 🧪 **Webhook Testing**: Built-in webhook testing functionality
 - 📋 **Comprehensive Logging**: Detailed logging for monitoring and debugging
 - 🧪 **Well Tested**: Comprehensive test suite with high coverage
@@ -25,6 +26,22 @@ The assistant uses Playwright to launch a headless browser that loads the Ninten
 - Send push notifications to your phone
 - Send emails or SMS messages  
 - Trigger other automations (smart home, calendar events, etc.)
+
+### Smart Notification System
+
+The notification system intelligently tracks availability changes:
+
+**Scenario 1: First Time Available**
+- Date becomes available → ✅ **Alert sent**
+
+**Scenario 2: No Change**
+- Date remains available → ❌ No duplicate alert
+
+**Scenario 3: Reappearing Availability**
+- Date disappears → No action
+- Date reappears → ✅ **New alert sent** (after 5-minute grace period)
+
+This ensures you don't miss slots that pop in and out of availability due to high demand, while preventing notification spam through a built-in grace period.
 
 ## Requirements
 
@@ -155,6 +172,48 @@ logging:
    - Your webhook URL format: `https://maker.ifttt.com/trigger/{event_name}/with/key/{your_key}`
 
 4. Update the `webhook.url` in your `config.yaml`
+
+## Notification Behavior
+
+### How Notifications Work
+
+The system uses intelligent state tracking to determine when to send notifications:
+
+**✅ You WILL receive notifications when:**
+- A date becomes available for the first time
+- A date becomes available again after being unavailable (respecting grace period)
+- New dates become available while other dates remain available
+
+**❌ You will NOT receive notifications when:**
+- A date remains continuously available (no duplicate alerts)
+- A date reappears within the 5-minute grace period (prevents spam)
+- A date becomes unavailable (only availability triggers alerts)
+
+### Grace Period
+
+The system includes a **5-minute grace period** between notifications to prevent spam while still catching slots that come and go quickly. This means:
+
+- If a date appears → disappears → reappears within 5 minutes: **No duplicate alert**
+- If a date appears → disappears → reappears after 5+ minutes: **New alert sent**
+
+### Example Scenarios
+
+**Scenario A: High-demand slot that flickers**
+```
+10:00 AM - Date 2025-09-26 available → ✅ Alert sent
+10:01 AM - Date 2025-09-26 unavailable → No action
+10:02 AM - Date 2025-09-26 available → ❌ No alert (grace period)
+10:07 AM - Date 2025-09-26 unavailable → No action  
+10:08 AM - Date 2025-09-26 available → ✅ Alert sent (grace period expired)
+```
+
+**Scenario B: Multiple dates becoming available**
+```
+10:00 AM - Date 2025-09-26 available → ✅ Alert sent
+10:05 AM - Dates 2025-09-26, 2025-09-27 available → ✅ Alert sent (for new date 2025-09-27)
+```
+
+This behavior ensures you don't miss opportunities while avoiding notification fatigue.
 
 ### IFTTT Webhook Payload
 
@@ -292,8 +351,9 @@ nintendo-museum-booking-assistant/
 
 ### Webhook Notifier (`src/notifier.py`)
 - IFTTT webhook integration
-- Rate limiting to prevent spam notifications
-- Deduplication of already-notified dates
+- Smart state tracking for reappearing availability
+- Rate limiting with 5-minute grace period to prevent notification spam
+- Comprehensive notification logic for dates that appear, disappear, and reappear
 - Webhook testing functionality
 - Comprehensive error handling and logging
 
@@ -333,6 +393,14 @@ To be respectful to the Nintendo Museum website:
 - Configurable timeouts for HTTP requests and page loads
 - Automatic backoff on errors
 
+### Notification Rate Limiting
+
+The notification system includes intelligent rate limiting:
+- **Grace Period**: 5-minute cooldown between notifications
+- **Smart Deduplication**: Prevents duplicate alerts for unchanged availability
+- **Reappearing Detection**: Allows new alerts when dates reappear after being unavailable
+- **Spam Prevention**: Balances responsiveness with notification fatigue
+
 ## Browser Automation
 
 The application uses Playwright with Chromium in headless mode:
@@ -345,19 +413,25 @@ The application uses Playwright with Chromium in headless mode:
 ## Testing
 
 The project includes comprehensive tests covering:
-- Configuration validation
-- Website polling with browser automation
-- Webhook notification functionality
-- Main application workflow
-- Error scenarios and edge cases
-- Browser automation error handling
+- Configuration validation and error handling
+- Website polling with browser automation and error scenarios
+- Smart notification system including reappearing availability logic
+- Webhook functionality and network error handling
+- Main application workflow and signal handling
+- State tracking and rate limiting behavior
+- Browser automation error handling and recovery
 
 Run tests with coverage:
 ```bash
 task test-cov
 ```
 
-Current test coverage: 78% with 32 comprehensive tests
+Current test coverage: **82%** with **35 comprehensive tests** including:
+- **5 configuration tests** covering validation and error cases
+- **9 polling tests** including browser automation and error recovery  
+- **10 notification tests** covering webhooks and smart notification behavior
+- **6 main application tests** covering workflow and signal handling
+- **5 URL masking tests** for security and privacy
 
 ## Contributing
 

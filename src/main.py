@@ -57,9 +57,13 @@ class BookingAssistant:
         Args:
             available_dates: Set of dates with availability
         """
-        logger.info(f"Availability detected for dates: {available_dates}")
+        # Log current availability status
+        if available_dates:
+            logger.info(f"Availability detected for dates: {available_dates}")
+        else:
+            logger.debug("No availability found for any target dates")
 
-        # Send notification if needed
+        # Send notification if needed (will handle state tracking internally)
         notification_sent = await self.notification_manager.notify_if_needed(
             available_dates
         )
@@ -67,7 +71,7 @@ class BookingAssistant:
         if notification_sent:
             logger.info("Webhook notification sent successfully")
         else:
-            logger.debug("Notification not sent (rate limited or already notified)")
+            logger.debug("Notification not sent (rate limited, no new availability, or error)")
 
     async def run(self) -> None:
         """Run the main application loop."""

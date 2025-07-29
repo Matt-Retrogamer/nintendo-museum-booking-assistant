@@ -128,49 +128,60 @@ class WebhookNotifier:
 
 
 class NotificationManager:
-    """Manages notification sending with rate limiting and deduplication."""
+    """Manages notification sending with rate limiting and state tracking."""
 
     def __init__(self, config: Config):
         """Initialize the notification manager."""
         self.config = config
-        self.notified_dates: set[str] = set()
+        self.previous_available_dates: set[str] = set()
         self.last_notification_time: datetime | None = None
         self.min_notification_interval = 300  # 5 minutes between notifications
 
     async def notify_if_needed(self, available_dates: set[str]) -> bool:
         """
-        Send notification only if new dates are available and enough time has passed.
+        Send notification for newly available dates or dates that became available again.
+        
+        This method will notify when:
+        1. A date becomes available for the first time
+        2. A date becomes available again after being unavailable (with rate limiting)
 
         Args:
-            available_dates: Set of available dates
+            available_dates: Set of currently available dates
 
         Returns:
             True if notification was sent, False otherwise
         """
-        # Check if these are new dates
-        new_dates = available_dates - self.notified_dates
-
-        if not new_dates:
-            logger.debug("No new dates to notify about")
+        # Determine which dates are newly available (weren't available in previous check)
+        newly_available_dates = available_dates - self.previous_available_dates
+        
+        if not newly_available_dates:
+            logger.debug("No newly available dates to notify about")
+            # Update state for next comparison
+            self.previous_available_dates = available_dates.copy()
             return False
 
-        # Check if enough time has passed since last notification
+        # Check if enough time has passed since last notification (grace period)
         now = datetime.now()
         if (
             self.last_notification_time
             and (now - self.last_notification_time).total_seconds()
             < self.min_notification_interval
         ):
-            logger.debug("Skipping notification due to rate limiting")
+            logger.debug(f"Skipping notification due to rate limiting ({self.min_notification_interval}s grace period)")
+            # Update state for next comparison even if we don't notify
+            self.previous_available_dates = available_dates.copy()
             return False
 
-        # Send notification
+        # Send notification for newly available dates
         async with WebhookNotifier(self.config) as notifier:
-            success = await notifier.send_notification(new_dates)
+            success = await notifier.send_notification(newly_available_dates)
 
             if success:
-                self.notified_dates.update(new_dates)
                 self.last_notification_time = now
-                logger.info(f"Notification sent for new dates: {new_dates}")
-
+                logger.info(f"Notification sent for newly available dates: {newly_available_dates}")
+            else:
+                logger.warning(f"Failed to send notification for dates: {newly_available_dates}")
+            
+            # Update state regardless of notification success
+            self.previous_available_dates = available_dates.copy()
             return success

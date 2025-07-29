@@ -190,11 +190,8 @@ class AvailabilityPoller:
                     self.config.target_dates
                 )
 
-                if available_dates:
-                    logger.info(f"Found availability for dates: {available_dates}")
-                    await on_availability_found(available_dates)
-                else:
-                    logger.debug("No availability found")
+                # Always call the handler to track state changes, even if no dates are available
+                await on_availability_found(available_dates)
 
                 # Wait before next poll
                 await asyncio.sleep(self.config.polling.interval_seconds)
