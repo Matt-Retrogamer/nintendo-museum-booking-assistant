@@ -50,7 +50,83 @@ This ensures you don't miss slots that pop in and out of availability due to hig
 - [Task](https://taskfile.dev) for running common tasks (optional but recommended)
 - Playwright browser binaries (automatically installed with `task install`)
 
+## Prerequisites Installation
+
+Before installing the project, you'll need to install the required tools: **uv** and **Task**.
+
+### Installing uv (Astral's Python Package Manager)
+
+**macOS:**
+```bash
+# Using Homebrew (recommended)
+brew install uv
+
+# Or using curl
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**Ubuntu/Debian:**
+```bash
+# Using snap (recommended)
+sudo snap install astral-uv --classic
+
+# Or using curl
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or using pip
+pip install uv
+
+# Or using pipx
+pipx install uv
+```
+
+### Installing Task (Task Runner)
+
+**macOS:**
+```bash
+# Using Homebrew (recommended)
+brew install go-task
+
+# Or using curl
+curl -sL https://taskfile.dev/install.sh | sh
+```
+
+**Ubuntu/Debian:**
+```bash
+# Using snap (recommended)
+sudo snap install task --classic
+
+# Or using curl
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+
+# Or download from GitHub releases
+sudo wget https://github.com/go-task/task/releases/latest/download/task_linux_amd64.tar.gz -O - | sudo tar -xz -C /usr/local/bin task
+```
+
+### Verification
+
+After installation, verify both tools are working:
+
+```bash
+# Check uv installation
+uv --version
+
+# Check Task installation  
+task --version
+```
+
+**Expected output example:**
+```
+$ uv --version
+uv 0.4.10
+
+$ task --version
+Task version: v3.38.0
+```
+
 ## Installation
+
+**Prerequisites:** Make sure you have installed [uv and Task](#prerequisites-installation) before proceeding.
 
 1. Clone the repository:
 ```bash
@@ -68,7 +144,7 @@ This will automatically:
 - Download Playwright Chromium browser binary
 - Install system dependencies for headless browser operation
 
-**Alternative manual installation:**
+**Alternative manual installation** (if you prefer not to use Task):
 ```bash
 uv sync --dev
 uv run playwright install chromium
@@ -76,6 +152,8 @@ uv run playwright install-deps chromium
 ```
 
 ## Quick Start
+
+**Prerequisites:** Ensure you have [uv and Task installed](#prerequisites-installation) first.
 
 1. **Install and setup:**
 ```bash
@@ -453,6 +531,34 @@ This project is licensed under the MIT License. See the LICENSE file for details
 This tool is for personal use only and is not affiliated with Nintendo. Please use responsibly and in accordance with Nintendo's terms of service. The tool does not automatically book tickets - it only notifies you when availability is detected.
 
 ## Troubleshooting
+
+### Prerequisites Issues
+
+**uv command not found**
+```
+zsh: command not found: uv
+bash: uv: command not found
+```
+Solution: Install uv following the [Prerequisites Installation](#prerequisites-installation) section. On macOS, try `brew install uv`. On Ubuntu, use the curl installation method.
+
+**Task command not found**
+```
+zsh: command not found: task
+bash: task: command not found
+```
+Solution: Install Task following the [Prerequisites Installation](#prerequisites-installation) section. On macOS, try `brew install go-task`. On Ubuntu, use `sudo snap install task --classic`.
+
+**Permission denied when installing with snap**
+```
+error: cannot install "task": snap not found
+```
+Solution: Ensure snapd is installed on Ubuntu: `sudo apt update && sudo apt install snapd`
+
+**Python version too old**
+```
+Python 3.10 is not supported. Requires Python 3.11 or higher.
+```
+Solution: Update Python to version 3.11 or higher. On Ubuntu: `sudo apt install python3.11`. On macOS: `brew install python@3.11` or download from python.org.
 
 ### Common Issues
 
