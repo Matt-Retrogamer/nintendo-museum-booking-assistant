@@ -3,7 +3,7 @@ name = "nintendo-museum-booking-assistant"
 version = "0.1.0"
 description = "A Python tool to monitor Nintendo Museum ticket availability and send webhook notifications"
 authors = [
-    {name = "Matt", email = "matt@example.com"}
+    {name = "Matt-Retrogamer"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
