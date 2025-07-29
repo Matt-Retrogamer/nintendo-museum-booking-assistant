@@ -73,7 +73,7 @@ class WebhookConfig(BaseModel):
 class WebsiteConfig(BaseModel):
     """Configuration for website monitoring."""
 
-    url: HttpUrl = "https://museum-tickets.nintendo.com/en/calendar"
+    url: HttpUrl = HttpUrl("https://museum-tickets.nintendo.com/en/calendar")
     availability_class: str = "sale"
 
 

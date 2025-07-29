@@ -1,7 +1,7 @@
 """Tests for webhook notification functionality."""
 
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -55,7 +55,7 @@ class TestWebhookNotifier:
         with patch("aiohttp.ClientSession.post") as mock_post:
             # Mock successful HTTP response
             mock_response = AsyncMock()
-            mock_response.raise_for_status = AsyncMock()
+            mock_response.raise_for_status = Mock()  # Not async!
             mock_response.text = AsyncMock(return_value="OK")
             mock_post.return_value.__aenter__.return_value = mock_response
 
@@ -91,7 +91,7 @@ class TestWebhookNotifier:
         with patch("aiohttp.ClientSession.post") as mock_post:
             # Mock successful HTTP response
             mock_response = AsyncMock()
-            mock_response.raise_for_status = AsyncMock()
+            mock_response.raise_for_status = Mock()  # Not async!
             mock_response.text = AsyncMock(return_value="OK")
             mock_post.return_value.__aenter__.return_value = mock_response
 
@@ -126,7 +126,7 @@ class TestNotificationManager:
     async def test_notify_if_needed_no_change(self, mock_config):
         """Test notification when availability doesn't change."""
         manager = NotificationManager(mock_config)
-        
+
         with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_notification.return_value = True
@@ -148,7 +148,7 @@ class TestNotificationManager:
     async def test_notify_if_needed_reappearing_dates(self, mock_config):
         """Test notification for dates that disappear and reappear."""
         manager = NotificationManager(mock_config)
-        
+
         with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_notification.return_value = True
@@ -157,24 +157,26 @@ class TestNotificationManager:
             # First: Date becomes available
             result1 = await manager.notify_if_needed({"2025-09-25"})
             assert result1 is True
-            
+
             # Second: Date disappears
             result2 = await manager.notify_if_needed(set())
             assert result2 is False
-            
+
             # Third: Date reappears (should notify again, but rate limited)
             result3 = await manager.notify_if_needed({"2025-09-25"})
             assert result3 is False  # Rate limited
-            
+
             # Should be called only once due to rate limiting
             assert mock_notifier.send_notification.call_count == 1
 
-    @pytest.mark.asyncio 
-    async def test_notify_if_needed_reappearing_dates_after_grace_period(self, mock_config):
+    @pytest.mark.asyncio
+    async def test_notify_if_needed_reappearing_dates_after_grace_period(
+        self, mock_config
+    ):
         """Test notification for dates that reappear after grace period."""
         manager = NotificationManager(mock_config)
         manager.min_notification_interval = 0  # No rate limiting for this test
-        
+
         with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_notification.return_value = True
@@ -183,15 +185,15 @@ class TestNotificationManager:
             # First: Date becomes available
             result1 = await manager.notify_if_needed({"2025-09-25"})
             assert result1 is True
-            
+
             # Second: Date disappears
             result2 = await manager.notify_if_needed(set())
             assert result2 is False
-            
+
             # Third: Date reappears (should notify again)
             result3 = await manager.notify_if_needed({"2025-09-25"})
             assert result3 is True
-            
+
             # Should be called twice
             assert mock_notifier.send_notification.call_count == 2
 
@@ -212,19 +214,19 @@ class TestNotificationManager:
         """Test heartbeat sending when enabled."""
         # Configure heartbeat interval
         mock_config.webhook.heartbeat_interval_hours = 24
-        
+
         manager = NotificationManager(mock_config)
-        
-        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_heartbeat.return_value = True
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
-            
+
             # First call should send heartbeat (no previous heartbeat)
             result = await manager.send_heartbeat_if_needed()
             assert result is True
             mock_notifier.send_heartbeat.assert_called_once()
-            
+
             # Immediate second call should not send heartbeat (too soon)
             mock_notifier.reset_mock()
             result2 = await manager.send_heartbeat_if_needed()
@@ -235,9 +237,9 @@ class TestNotificationManager:
         """Test heartbeat not sending when disabled."""
         # Disable heartbeat
         mock_config.webhook.heartbeat_interval_hours = 0
-        
+
         manager = NotificationManager(mock_config)
-        
+
         # Should not send heartbeat when disabled
         result = await manager.send_heartbeat_if_needed()
         assert result is False
@@ -245,17 +247,17 @@ class TestNotificationManager:
     async def test_send_heartbeat_after_interval(self, mock_config):
         """Test heartbeat sending after interval has passed."""
         mock_config.webhook.heartbeat_interval_hours = 1  # 1 hour for easier testing
-        
+
         manager = NotificationManager(mock_config)
-        
+
         # Set last heartbeat time to 2 hours ago
         manager.last_heartbeat_time = datetime.now() - timedelta(hours=2)
-        
-        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_heartbeat.return_value = True
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
-            
+
             # Should send heartbeat since interval has passed
             result = await manager.send_heartbeat_if_needed()
             assert result is True
@@ -264,38 +266,43 @@ class TestNotificationManager:
     async def test_send_heartbeat_failure(self, mock_config):
         """Test heartbeat failure handling."""
         mock_config.webhook.heartbeat_interval_hours = 24
-        
+
         manager = NotificationManager(mock_config)
-        
-        with patch('src.notifier.WebhookNotifier') as mock_notifier_class:
+
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
             mock_notifier = AsyncMock()
             mock_notifier.send_heartbeat.return_value = False  # Simulate failure
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
-            
+
             # Should return False on failure
             result = await manager.send_heartbeat_if_needed()
             assert result is False
-            
+
             # Should not update last heartbeat time on failure
             assert manager.last_heartbeat_time is None
 
     async def test_webhook_notifier_send_heartbeat(self, mock_config):
         """Test WebhookNotifier send_heartbeat method."""
-        with patch('aiohttp.ClientSession.post') as mock_post:
+        with patch("aiohttp.ClientSession.post") as mock_post:
             mock_response = AsyncMock()
             mock_response.status = 200
+            mock_response.raise_for_status = Mock()  # Not async!
+            mock_response.text = AsyncMock(return_value="OK")
             mock_post.return_value.__aenter__.return_value = mock_response
-            
+
             async with WebhookNotifier(mock_config) as notifier:
                 result = await notifier.send_heartbeat()
                 assert result is True
-                
+
                 # Verify the correct payload was sent
                 mock_post.assert_called_once()
                 call_args = mock_post.call_args
-                
+
                 # Check that the JSON payload contains heartbeat data
-                json_data = call_args[1]['json']
-                assert json_data['value1'] == "HEARTBEAT - Nintendo Museum Booking Assistant"
-                assert json_data['value2'] == "Service is running normally"
-                assert 'value3' in json_data  # Timestamp should be present
+                json_data = call_args[1]["json"]
+                assert (
+                    json_data["value1"]
+                    == "HEARTBEAT - Nintendo Museum Booking Assistant"
+                )
+                assert json_data["value2"] == "Service is running normally"
+                assert "value3" in json_data  # Timestamp should be present

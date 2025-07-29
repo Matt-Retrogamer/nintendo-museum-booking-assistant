@@ -5,6 +5,7 @@ import logging
 import signal
 import sys
 from pathlib import Path
+from typing import Any
 
 from .config import load_config, mask_sensitive_url
 from .notifier import NotificationManager
@@ -43,7 +44,7 @@ class BookingAssistant:
     def setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""
 
-        def signal_handler(signum, frame):
+        def signal_handler(signum: int, frame: Any) -> None:
             logger.info(f"Received signal {signum}, initiating shutdown...")
             self._shutdown_event.set()
 
@@ -71,7 +72,9 @@ class BookingAssistant:
         if notification_sent:
             logger.info("Webhook notification sent successfully")
         else:
-            logger.debug("Notification not sent (rate limited, no new availability, or error)")
+            logger.debug(
+                "Notification not sent (rate limited, no new availability, or error)"
+            )
 
         # Check if heartbeat notification is needed
         heartbeat_sent = await self.notification_manager.send_heartbeat_if_needed()

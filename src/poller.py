@@ -2,8 +2,10 @@
 
 import asyncio
 import logging
+from collections.abc import Callable
+from typing import Any
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Browser, Page, Playwright, async_playwright
 
 from .config import Config
 
@@ -16,8 +18,8 @@ class AvailabilityPoller:
     def __init__(self, config: Config):
         """Initialize the poller with configuration."""
         self.config = config
-        self.playwright = None
-        self.browser = None
+        self.playwright: Playwright | None = None
+        self.browser: Browser | None = None
         self._running = False
         self._has_error = False  # Track error state for recovery logging
 
@@ -27,7 +29,7 @@ class AvailabilityPoller:
         self.browser = await self.playwright.chromium.launch(headless=True)
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
         try:
             if self.browser:
@@ -85,7 +87,9 @@ class AvailabilityPoller:
 
             # Log recovery if we were previously in an error state
             if self._has_error:
-                logger.info("✅ System recovered - availability checking is back to normal")
+                logger.info(
+                    "✅ System recovered - availability checking is back to normal"
+                )
                 self._has_error = False
 
             return available_dates
@@ -94,10 +98,14 @@ class AvailabilityPoller:
             logger.error(f"Error while checking availability: {e}")
             if not self._has_error:
                 self._has_error = True
-                logger.warning("⚠️  System experiencing issues - will continue trying...")
+                logger.warning(
+                    "⚠️  System experiencing issues - will continue trying..."
+                )
             return set()
 
-    async def _check_dates_on_page(self, page, target_dates: list[str]) -> set[str]:
+    async def _check_dates_on_page(
+        self, page: Page, target_dates: list[str]
+    ) -> set[str]:
         """
         Check for availability of target dates on the loaded page.
 
@@ -172,7 +180,9 @@ class AvailabilityPoller:
 
         return available_dates
 
-    async def start_polling(self, on_availability_found) -> None:
+    async def start_polling(
+        self, on_availability_found: Callable[[set[str]], Any]
+    ) -> None:
         """
         Start continuous polling for availability.
 

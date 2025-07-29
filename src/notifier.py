@@ -26,7 +26,7 @@ class WebhookNotifier:
         )
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
         if self.session:
             await self.session.close()
@@ -113,6 +113,9 @@ class WebhookNotifier:
         payload["value2"] = "This is a test notification"
 
         try:
+            if not self.session:
+                raise RuntimeError("Notifier must be used as an async context manager")
+
             async with self.session.post(
                 self.config.webhook.url, json=payload
             ) as response:
@@ -152,7 +155,9 @@ class WebhookNotifier:
                 response.raise_for_status()
                 response_text = await response.text()
 
-                logger.info(f"Heartbeat notification sent successfully. Response: {response_text}")
+                logger.info(
+                    f"Heartbeat notification sent successfully. Response: {response_text}"
+                )
                 return True
 
         except Exception as e:
@@ -173,7 +178,7 @@ class NotificationManager:
     async def notify_if_needed(self, available_dates: set[str]) -> bool:
         """
         Send notification for newly available dates or dates that became available again.
-        
+
         This method will notify when:
         1. A date becomes available for the first time
         2. A date becomes available again after being unavailable (with rate limiting)
@@ -186,7 +191,7 @@ class NotificationManager:
         """
         # Determine which dates are newly available (weren't available in previous check)
         newly_available_dates = available_dates - self.previous_available_dates
-        
+
         if not newly_available_dates:
             logger.debug("No newly available dates to notify about")
             # Update state for next comparison
@@ -200,7 +205,9 @@ class NotificationManager:
             and (now - self.last_notification_time).total_seconds()
             < self.min_notification_interval
         ):
-            logger.debug(f"Skipping notification due to rate limiting ({self.min_notification_interval}s grace period)")
+            logger.debug(
+                f"Skipping notification due to rate limiting ({self.min_notification_interval}s grace period)"
+            )
             # Update state for next comparison even if we don't notify
             self.previous_available_dates = available_dates.copy()
             return False
@@ -211,10 +218,14 @@ class NotificationManager:
 
             if success:
                 self.last_notification_time = now
-                logger.info(f"Notification sent for newly available dates: {newly_available_dates}")
+                logger.info(
+                    f"Notification sent for newly available dates: {newly_available_dates}"
+                )
             else:
-                logger.warning(f"Failed to send notification for dates: {newly_available_dates}")
-            
+                logger.warning(
+                    f"Failed to send notification for dates: {newly_available_dates}"
+                )
+
             # Update state regardless of notification success
             self.previous_available_dates = available_dates.copy()
             return success
@@ -236,17 +247,18 @@ class NotificationManager:
         # Check if it's time for a heartbeat
         if (
             self.last_heartbeat_time is None
-            or (now - self.last_heartbeat_time).total_seconds() >= heartbeat_interval_seconds
+            or (now - self.last_heartbeat_time).total_seconds()
+            >= heartbeat_interval_seconds
         ):
             async with WebhookNotifier(self.config) as notifier:
                 success = await notifier.send_heartbeat()
-                
+
                 if success:
                     self.last_heartbeat_time = now
                     logger.info("Heartbeat notification sent")
                 else:
                     logger.warning("Failed to send heartbeat notification")
-                
+
                 return success
 
         return False
