@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nintendo-museum-assistant:
+    build: .
+    container_name: nintendo-museum-assistant
+    restart: unless-stopped
+    volumes:
+      # Mount your config file (read-only)
+      - ./config.yaml:/app/config.yaml:ro
+      # Mount logs directory for persistent logs
+      - ./logs:/app/logs
+    environment:
+      # Override log level if needed
+      - LOG_LEVEL=INFO
+    # Optional: Add resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    # Optional: Add health check
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "python"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -164,7 +164,7 @@ task install
 
 2. **Create configuration:**
 ```bash
-cp config.yaml.example config.yaml
+cp config.example.yaml config.yaml
 # Edit config.yaml with your target dates and IFTTT webhook URL
 ```
 
@@ -181,6 +181,138 @@ task run
 For debugging issues, use:
 ```bash
 task run-debug
+```
+
+## Deployment Recommendations
+
+The Nintendo Museum Booking Assistant is designed as a **long-running monitoring service** that continuously polls the website for availability. Consider these deployment options:
+
+### 🖥️ **Always-On Computer**
+Run on a desktop computer, laptop, or home server that stays powered on:
+- Ideal for home users with a dedicated machine
+- Easy to monitor logs and status
+- Can run in background while using the computer for other tasks
+
+### ☁️ **Virtual Private Server (VPS)**
+Deploy on a cloud VPS (DigitalOcean, Linode, AWS EC2, etc.):
+- Runs 24/7 without local machine dependency
+- Typically costs $5-10/month for basic VPS
+- Access via SSH for monitoring and updates
+- Recommended for reliable, unattended operation
+
+### 🐳 **Docker Container**
+Run in a Docker container for easy deployment and isolation:
+- Portable across different systems
+- Easy to restart and update
+- Can run on any Docker-compatible host
+- See [Docker Deployment](#docker-deployment) section below
+
+### 📱 **Local Development/Testing**
+For testing or short-term monitoring:
+- Run locally during specific time periods
+- Good for initial setup and webhook testing
+- Not suitable for 24/7 monitoring unless machine stays on
+
+## Docker Deployment
+
+> **Note:** The Dockerfile and docker-compose.yml are provided as examples for containerized deployment. **No official Docker images are maintained** - users should build their own images using the provided Dockerfile. This ensures you have the latest code and can customize the build as needed.
+
+### Building and Running Locally (Recommended)
+
+1. **Create the Docker image:**
+```bash
+docker build -t nintendo-museum-assistant .
+```
+
+2. **Run the container:**
+```bash
+docker run -d \
+  --name nintendo-museum-assistant \
+  --restart unless-stopped \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/logs:/app/logs \
+  nintendo-museum-assistant
+```
+
+3. **View logs:**
+```bash
+docker logs -f nintendo-museum-assistant
+```
+
+4. **Stop the container:**
+```bash
+docker stop nintendo-museum-assistant
+```
+
+### Docker Compose (Alternative)
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  nintendo-museum-assistant:
+    build: .
+    container_name: nintendo-museum-assistant
+    restart: unless-stopped
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./logs:/app/logs
+    environment:
+      - LOG_LEVEL=INFO
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
+### Production Deployment Tips
+
+**For VPS/Server Deployment:**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd nintendo-museum-booking-assistant
+
+# Install prerequisites (uv and task)
+# ... follow Prerequisites Installation section
+
+# Setup and configure
+task install
+cp config.example.yaml config.yaml
+# Edit config.yaml with your settings
+
+# Test the configuration
+task test-webhook
+
+# Run in background with nohup (alternative to Docker)
+nohup task run > nintendo_museum.log 2>&1 &
+
+# Or use screen/tmux for persistent sessions
+screen -S nintendo-museum
+task run
+# Ctrl+A, D to detach
+```
+
+**For Docker Deployment:**
+```bash
+# Clone and setup
+git clone <repository-url>
+cd nintendo-museum-booking-assistant
+
+# Create your config file
+cp config.example.yaml config.yaml
+# Edit config.yaml with your settings
+
+# Build and run with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
 ```
 
 ## Current Status ✅
@@ -407,8 +539,12 @@ nintendo-museum-booking-assistant/
 │   ├── test_notifier.py   # Notification tests
 │   └── test_main.py       # Main application tests
 ├── config.yaml            # Configuration file
+├── config.example.yaml    # Example configuration
 ├── pyproject.toml         # Project dependencies and settings
 ├── Taskfile.yml           # Task definitions
+├── Dockerfile             # Docker image definition
+├── docker-compose.yml     # Docker Compose configuration
+├── .dockerignore          # Docker build ignore file
 └── README.md              # This file
 ```
 
@@ -607,6 +743,57 @@ This is normal when tickets aren't available yet. The application will detect wh
 No availability found
 ```
 This is normal - the tool will continue monitoring until availability is detected.
+
+### Docker Issues
+
+**Docker build fails with Playwright installation**
+```
+Error: Failed to install browsers
+```
+Solution: Ensure Docker has enough memory allocated (at least 2GB). On Docker Desktop, increase memory limit in settings.
+
+**Container exits immediately**
+```
+docker ps shows container as "Exited"
+```
+Solution: Check logs with `docker logs nintendo-museum-assistant`. Common issues:
+- Missing or invalid config.yaml file
+- Incorrect volume mount paths
+- Insufficient permissions
+
+**Config file not found in Docker**
+```
+Error: Configuration file not found: config.yaml
+```
+Solution: Ensure config.yaml exists in the same directory as docker-compose.yml and the volume mount is correct:
+```bash
+# Check if config.yaml exists
+ls -la config.yaml
+
+# Verify volume mount in docker-compose.yml
+- ./config.yaml:/app/config.yaml:ro
+```
+
+**Browser automation fails in Docker**
+```
+Error: Browser type does not exist
+```
+Solution: The Dockerfile includes browser installation. If this fails, try rebuilding:
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**Logs not persisting**
+```
+Logs disappear when container restarts
+```
+Solution: Ensure logs directory exists and is properly mounted:
+```bash
+mkdir -p logs
+# Check docker-compose.yml has: - ./logs:/app/logs
+```
 
 ### Debug Mode
 

@@ -1,0 +1,53 @@
+# Git and development files
+.git
+.gitignore
+.github
+
+# Python cache and virtual environments
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+venv/
+env/
+ENV/
+
+# Testing and coverage
+.pytest_cache
+.coverage
+htmlcov/
+.tox/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+nintendo_museum_assistant.log
+
+# Config files (will be mounted)
+config.yaml
+
+# Documentation
+README.md
+docs/
+
+# Task and build files
+Taskfile.yml
+.task/
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
