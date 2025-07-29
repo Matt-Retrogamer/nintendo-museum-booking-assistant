@@ -9,6 +9,22 @@ A Python-based tool that monitors the Nintendo Museum ticket booking website for
 
 This project ports the core functionality from the original [Nintendo Museum Reservation Notifier](https://github.com/zhxie/nintendo-museum-reservation-notifier) into a modern, async Python application with IFTTT webhook integration and headless browser automation.
 
+## Features
+
+- 🎯 **Targeted Monitoring**: Monitor specific dates for ticket availability
+- 🔄 **Asynchronous Polling**: Efficient, non-blocking website monitoring using Playwright  
+- 🌐 **JavaScript Support**: Uses headless browser automation to handle dynamic content
+- 📱 **IFTTT Integration**: Send notifications via webhook to trigger IFTTT automations
+- 🔔 **Smart Notifications**: Get alerted when dates become available, disappear, and reappear (with grace period)
+- 💓 **Heartbeat Monitoring**: Periodic "alive" notifications to confirm service is running
+- ⚙️ **Configurable**: Customizable polling intervals and target dates
+- 🛡️ **Robust Error Handling**: Graceful handling of network errors and rate limiting
+- 🔒 **Security**: Sensitive information (webhook URLs, API keys) are masked in log output
+- 📋 **Debug Mode**: Enhanced logging and troubleshooting capabilities
+- 🧪 **Webhook Testing**: Built-in webhook testing functionality
+- 📋 **Comprehensive Logging**: Detailed logging for monitoring and debugging
+- 🧪 **Well Tested**: Comprehensive test suite with high coverage
+
 ## ⚡ Quick Start
 
 **New to this?** Skip to the [Quick Start Guide](#quick-start-guide) for a step-by-step walkthrough.
@@ -32,33 +48,11 @@ This project ports the core functionality from the original [Nintendo Museum Res
 - [Testing](#testing)
 - [Contributing](#contributing)
 
-## 🚀 Status
-
-**✅ Fully Functional & Production Ready**
-
-This tool is actively working and successfully monitoring the Nintendo Museum calendar. It correctly detects availability changes and sends notifications through IFTTT webhooks.
+## How It Works
 
 **What it monitors:** Nintendo Museum ticket booking calendar at [museum-tickets.nintendo.com](https://museum-tickets.nintendo.com/en/calendar)
 **How it works:** Detects when date CSS classes change from "soldOut" to "sale"
 **Notifications:** Sends webhooks to IFTTT for push notifications, emails, SMS, etc.
-
-## Features
-
-- 🎯 **Targeted Monitoring**: Monitor specific dates for ticket availability
-- 🔄 **Asynchronous Polling**: Efficient, non-blocking website monitoring using Playwright  
-- 🌐 **JavaScript Support**: Uses headless browser automation to handle dynamic content
-- 📱 **IFTTT Integration**: Send notifications via webhook to trigger IFTTT automations
-- 🔔 **Smart Notifications**: Get alerted when dates become available, disappear, and reappear (with grace period)
-- 💓 **Heartbeat Monitoring**: Periodic "alive" notifications to confirm service is running
-- ⚙️ **Configurable**: Customizable polling intervals and target dates
-- 🛡️ **Robust Error Handling**: Graceful handling of network errors and rate limiting
-- 🔒 **Security**: Sensitive information (webhook URLs, API keys) are masked in log output
-- 📋 **Debug Mode**: Enhanced logging and troubleshooting capabilities
-- 🧪 **Webhook Testing**: Built-in webhook testing functionality
-- 📋 **Comprehensive Logging**: Detailed logging for monitoring and debugging
-- 🧪 **Well Tested**: Comprehensive test suite with high coverage
-
-## How It Works
 
 The assistant uses Playwright to launch a headless browser that loads the Nintendo Museum calendar page, executes JavaScript, and monitors for ticket availability on your specified dates. When availability is found (indicated by a "sale" CSS class), it triggers an IFTTT webhook that can:
 
@@ -71,12 +65,15 @@ The assistant uses Playwright to launch a headless browser that loads the Ninten
 The notification system intelligently tracks availability changes:
 
 **Scenario 1: First Time Available**
+
 - Date becomes available → ✅ **Alert sent**
 
 **Scenario 2: No Change**
+
 - Date remains available → ❌ No duplicate alert
 
 **Scenario 3: Reappearing Availability**
+
 - Date disappears → No action
 - Date reappears → ✅ **New alert sent** (after 5-minute grace period)
 
@@ -91,11 +88,13 @@ This ensures you don't miss slots that pop in and out of availability due to hig
 First, install the required tools on your system:
 
 - **macOS users:** Install [Homebrew](https://brew.sh), then run:
+
   ```bash
   brew install uv go-task
   ```
 
 - **Ubuntu/Linux users:** Run:
+
   ```bash
   sudo snap install astral-uv --classic
   sudo snap install task --classic
@@ -123,14 +122,15 @@ nano config.yaml  # or use your preferred editor
 ```
 
 **Required changes in config.yaml:**
+
 1. **Set your target dates** - Replace the example dates with the dates you want to monitor (see important note below)
 2. **Get an IFTTT webhook URL** - Follow the [IFTTT setup guide](#ifttt-webhook-setup) below
 3. **Update the webhook URL** - Replace `YOUR_IFTTT_KEY` with your actual IFTTT key
 
 > **📅 Important: Which dates should you monitor?**
-> 
+>
 > Only monitor dates that are **2-6 months in the future**. Nintendo typically releases tickets in batches a few months ahead of time. Monitoring dates too far in the future or dates that have already passed won't yield results.
-> 
+>
 > **Example:** If it's July 2025, monitor dates like September-December 2025, not dates in 2026 or past dates.
 
 ### Step 4: Test Your Setup
@@ -167,6 +167,7 @@ Before installing the project, you'll need to install the required tools: **uv**
 ### Installing uv (Astral's Python Package Manager)
 
 **macOS:**
+
 ```bash
 # Using Homebrew (recommended)
 brew install uv
@@ -176,6 +177,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 # Using snap (recommended)
 sudo snap install astral-uv --classic
@@ -193,6 +195,7 @@ pipx install uv
 ### Installing Task (Task Runner)
 
 **macOS:**
+
 ```bash
 # Using Homebrew (recommended)
 brew install go-task
@@ -202,6 +205,7 @@ curl -sL https://taskfile.dev/install.sh | sh
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 # Using snap (recommended)
 sudo snap install task --classic
@@ -226,6 +230,7 @@ task --version
 ```
 
 **Expected output example:**
+
 ```
 $ uv --version
 uv 0.4.10
@@ -239,22 +244,26 @@ Task version: v3.38.0
 **Prerequisites:** Make sure you have installed [uv and Task](#prerequisites-installation) before proceeding.
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
 ```
 
 2. Install all dependencies (Python packages + browser binaries):
+
 ```bash
 task install
 ```
 
 This will automatically:
+
 - Install Python dependencies with `uv sync --dev`
 - Download Playwright Chromium browser binary
 - Install system dependencies for headless browser operation
 
 **Alternative manual installation** (if you prefer not to use Task):
+
 ```bash
 uv sync --dev
 uv run playwright install chromium
@@ -266,6 +275,7 @@ uv run playwright install-deps chromium
 **Prerequisites:** Ensure you have [uv and Task installed](#prerequisites-installation) first.
 
 1. **Install and setup:**
+
 ```bash
 git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
@@ -273,22 +283,26 @@ task install
 ```
 
 2. **Create configuration:**
+
 ```bash
 cp config.example.yaml config.yaml
 # Edit config.yaml with your target dates and IFTTT webhook URL
 ```
 
 3. **Test webhook:**
+
 ```bash
 task test-webhook
 ```
 
 4. **Start monitoring:**
+
 ```bash
 task run
 ```
 
 For debugging issues, use:
+
 ```bash
 task run-debug
 ```
@@ -298,27 +312,35 @@ task run-debug
 The Nintendo Museum Booking Assistant is designed as a **long-running monitoring service** that continuously polls the website for availability. Consider these deployment options:
 
 ### 🖥️ **Always-On Computer**
+
 Run on a desktop computer, laptop, or home server that stays powered on:
+
 - Ideal for home users with a dedicated machine
 - Easy to monitor logs and status
 - Can run in background while using the computer for other tasks
 
 ### ☁️ **Virtual Private Server (VPS)**
+
 Deploy on a cloud VPS (DigitalOcean, Linode, AWS EC2, etc.):
+
 - Runs 24/7 without local machine dependency
 - Typically costs $5-10/month for basic VPS
 - Access via SSH for monitoring and updates
 - Recommended for reliable, unattended operation
 
 ### 🐳 **Docker Container**
+
 Run in a Docker container for easy deployment and isolation:
+
 - Portable across different systems
 - Easy to restart and update
 - Can run on any Docker-compatible host
 - See [Docker Deployment](#docker-deployment) section below
 
 ### 📱 **Local Development/Testing**
+
 For testing or short-term monitoring:
+
 - Run locally during specific time periods
 - Good for initial setup and webhook testing
 - Not suitable for 24/7 monitoring unless machine stays on
@@ -330,11 +352,13 @@ For testing or short-term monitoring:
 ### Building and Running Locally (Recommended)
 
 1. **Create the Docker image:**
+
 ```bash
 docker build -t nintendo-museum-assistant .
 ```
 
 2. **Run the container:**
+
 ```bash
 docker run -d \
   --name nintendo-museum-assistant \
@@ -345,11 +369,13 @@ docker run -d \
 ```
 
 3. **View logs:**
+
 ```bash
 docker logs -f nintendo-museum-assistant
 ```
 
 4. **Stop the container:**
+
 ```bash
 docker stop nintendo-museum-assistant
 ```
@@ -373,6 +399,7 @@ services:
 ```
 
 Run with:
+
 ```bash
 docker-compose up -d
 ```
@@ -380,6 +407,7 @@ docker-compose up -d
 ### Production Deployment Tips
 
 **For VPS/Server Deployment:**
+
 ```bash
 # Clone the repository
 git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
@@ -406,6 +434,7 @@ task run
 ```
 
 **For Docker Deployment:**
+
 ```bash
 # Clone and setup
 git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
@@ -492,6 +521,7 @@ logging:
    - Save the file
 
 **Example webhook URL format:**
+
 ```
 https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/dAbCdEfGhIjKlMnOpQrStUvWxYz
 ```
@@ -503,11 +533,13 @@ https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/dAbCdEfGhIjKl
 The system uses intelligent state tracking to determine when to send notifications:
 
 **✅ You WILL receive notifications when:**
+
 - A date becomes available for the first time
 - A date becomes available again after being unavailable (respecting grace period)
 - New dates become available while other dates remain available
 
 **❌ You will NOT receive notifications when:**
+
 - A date remains continuously available (no duplicate alerts)
 - A date reappears within the 5-minute grace period (prevents spam)
 - A date becomes unavailable (only availability triggers alerts)
@@ -522,6 +554,7 @@ The system includes a **5-minute grace period** between notifications to prevent
 ### Example Scenarios
 
 **Scenario A: High-demand slot that flickers**
+
 ```
 10:00 AM - Date 2025-09-26 available → ✅ Alert sent
 10:01 AM - Date 2025-09-26 unavailable → No action
@@ -531,6 +564,7 @@ The system includes a **5-minute grace period** between notifications to prevent
 ```
 
 **Scenario B: Multiple dates becoming available**
+
 ```
 10:00 AM - Date 2025-09-26 available → ✅ Alert sent
 10:05 AM - Dates 2025-09-26, 2025-09-27 available → ✅ Alert sent (for new date 2025-09-27)
@@ -543,6 +577,7 @@ This behavior ensures you don't miss opportunities while avoiding notification f
 The system can send periodic "heartbeat" notifications to confirm it's still running and monitoring for availability. This is especially useful for long-running deployments on VPS/Docker where you want to ensure the service hasn't crashed or stopped.
 
 **Configuration:**
+
 ```yaml
 webhook:
   heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
@@ -550,6 +585,7 @@ webhook:
 ```
 
 **Heartbeat behavior:**
+
 - Sends a periodic notification at the configured interval
 - Independent of availability notifications
 - Uses the same webhook endpoint with different payload
@@ -557,6 +593,7 @@ webhook:
 - Disabled by default (set `heartbeat_interval_hours: 0` or omit the field)
 
 **Heartbeat webhook payload:**
+
 ```json
 {
   "value1": "HEARTBEAT - Nintendo Museum Booking Assistant",
@@ -578,11 +615,13 @@ The webhook sends the following data to IFTTT:
 ```
 
 You can use these values in your IFTTT action:
+
 - `{{Value1}}`: Available dates
 - `{{Value2}}`: Direct link to booking page
 - `{{Value3}}`: Timestamp
 
 Example notification message:
+
 ```
 🎮 Nintendo Museum tickets available for: {{Value1}}
 Book now: {{Value2}}
@@ -594,11 +633,13 @@ Found at: {{Value3}}
 ### Start Monitoring
 
 Using Task (recommended):
+
 ```bash
 task run
 ```
 
 Or directly with uv:
+
 ```bash
 uv run python -m src.main
 ```
@@ -606,11 +647,13 @@ uv run python -m src.main
 ### Debug Mode
 
 For enhanced debugging with detailed logging:
+
 ```bash
 task run-debug
 ```
 
 This mode sets the log level to DEBUG and provides detailed information about:
+
 - Page navigation and loading
 - Calendar cell detection
 - Date availability checking
@@ -619,6 +662,7 @@ This mode sets the log level to DEBUG and provides detailed information about:
 ### Test Webhook Configuration
 
 Before starting monitoring, test your IFTTT webhook:
+
 ```bash
 task test-webhook
 ```
@@ -628,36 +672,43 @@ This sends a test notification to verify your webhook configuration is working c
 ### Development Tasks
 
 Install dependencies:
+
 ```bash
 task install
 ```
 
 Run tests:
+
 ```bash
 task test
 ```
 
 Run tests with coverage:
+
 ```bash
 task test-cov
 ```
 
 Lint code:
+
 ```bash
 task lint
 ```
 
 Format code:
+
 ```bash
 task format
 ```
 
 Clean temporary files:
+
 ```bash
 task clean
 ```
 
 Development setup (install + lint + test):
+
 ```bash
 task dev
 ```
@@ -691,11 +742,13 @@ nintendo-museum-booking-assistant/
 ## Core Components
 
 ### Configuration Management (`src/config.py`)
+
 - Validates configuration using Pydantic models
 - Supports YAML configuration files
 - Provides type-safe configuration access
 
 ### Website Poller (`src/poller.py`)
+
 - Uses Playwright for headless browser automation
 - Handles JavaScript-rendered content dynamically
 - Detects calendar elements after page load and script execution
@@ -704,6 +757,7 @@ nintendo-museum-booking-assistant/
 - Enhanced debugging capabilities showing actual CSS classes
 
 ### Webhook Notifier (`src/notifier.py`)
+
 - IFTTT webhook integration
 - Smart state tracking for reappearing availability
 - Rate limiting with 5-minute grace period to prevent notification spam
@@ -712,6 +766,7 @@ nintendo-museum-booking-assistant/
 - Comprehensive error handling and logging
 
 ### Main Application (`src/main.py`)
+
 - Coordinates polling and notification components
 - Signal handling for graceful shutdown
 - Comprehensive logging setup
@@ -741,6 +796,7 @@ The application is designed to be resilient:
 ## Rate Limiting
 
 To be respectful to the Nintendo Museum website:
+
 - Default polling interval: 10 seconds
 - Page load delay: 2 seconds (mimics original behavior)
 - Additional wait for dynamic content loading
@@ -750,6 +806,7 @@ To be respectful to the Nintendo Museum website:
 ### Notification Rate Limiting
 
 The notification system includes intelligent rate limiting:
+
 - **Grace Period**: 5-minute cooldown between notifications
 - **Smart Deduplication**: Prevents duplicate alerts for unchanged availability
 - **Reappearing Detection**: Allows new alerts when dates reappear after being unavailable
@@ -758,6 +815,7 @@ The notification system includes intelligent rate limiting:
 ## Browser Automation
 
 The application uses Playwright with Chromium in headless mode:
+
 - **User Agent Spoofing**: Sets realistic browser headers to avoid bot detection
 - **JavaScript Execution**: Fully renders the page including dynamic calendar content
 - **Element Detection**: Waits for calendar elements to appear before checking availability
@@ -767,6 +825,7 @@ The application uses Playwright with Chromium in headless mode:
 ## Testing
 
 The project includes comprehensive tests covering:
+
 - Configuration validation and error handling
 - Website polling with browser automation and error scenarios
 - Smart notification system including reappearing availability logic
@@ -776,11 +835,13 @@ The project includes comprehensive tests covering:
 - Browser automation error handling and recovery
 
 Run tests with coverage:
+
 ```bash
 task test-cov
 ```
 
 Current test coverage: **82%** with **40 comprehensive tests** including:
+
 - **5 configuration tests** covering validation and error cases
 - **9 polling tests** including browser automation and error recovery  
 - **15 notification tests** covering webhooks, smart notification behavior, and heartbeat functionality
@@ -819,101 +880,131 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ### Prerequisites Issues
 
 **uv command not found**
+
 ```
 zsh: command not found: uv
 bash: uv: command not found
 ```
+
 Solution: Install uv following the [Prerequisites Installation](#prerequisites-installation) section. On macOS, try `brew install uv`. On Ubuntu, use the curl installation method.
 
 **Task command not found**
+
 ```
 zsh: command not found: task
 bash: task: command not found
 ```
+
 Solution: Install Task following the [Prerequisites Installation](#prerequisites-installation) section. On macOS, try `brew install go-task`. On Ubuntu, use `sudo snap install task --classic`.
 
 **Permission denied when installing with snap**
+
 ```
 error: cannot install "task": snap not found
 ```
+
 Solution: Ensure snapd is installed on Ubuntu: `sudo apt update && sudo apt install snapd`
 
 **Python version too old**
+
 ```
 Python 3.10 is not supported. Requires Python 3.11 or higher.
 ```
+
 Solution: Update Python to version 3.11 or higher. On Ubuntu: `sudo apt install python3.11`. On macOS: `brew install python@3.11` or download from python.org.
 
 ### Common Issues
 
 **Configuration file not found**
+
 ```
 Error: Configuration file not found: config.yaml
 ```
+
 Solution: Create a `config.yaml` file based on the example configuration above.
 
 **Invalid date format**
+
 ```
 ValueError: Invalid date format 'invalid-date'. Use YYYY-MM-DD
 ```
+
 Solution: Ensure all dates in `target_dates` are in YYYY-MM-DD format.
 
 **Webhook test fails**
+
 ```
 Webhook test failed: Network error
 ```
+
 Solution: Verify your IFTTT webhook URL and internet connection.
 
 **Browser automation issues**
+
 ```
 Error: Playwright browser not found
 Error: Browser type does not exist, please run playwright install
 ```
+
 Solution: Install Playwright browsers. If you used `task install`, browsers should already be installed. Otherwise run:
+
 ```bash
 uv run playwright install chromium
 uv run playwright install-deps chromium
 ```
 
 Or simply run the complete installation:
+
 ```bash
 task install
 ```
 
 **Date cells showing "soldOut" instead of availability**
+
 ```
 Actual class for 2025-09-25: soldOut
 ```
+
 This is normal when tickets aren't available yet. The application will detect when the class changes to "sale".
 
 **No availability found**
+
 ```
 No availability found
 ```
+
 This is normal - the tool will continue monitoring until availability is detected.
 
 ### Docker Issues
 
 **Docker build fails with Playwright installation**
+
 ```
 Error: Failed to install browsers
 ```
+
 Solution: Ensure Docker has enough memory allocated (at least 2GB). On Docker Desktop, increase memory limit in settings.
 
 **Container exits immediately**
+
 ```
 docker ps shows container as "Exited"
 ```
+
 Solution: Check logs with `docker logs nintendo-museum-assistant`. Common issues:
+
 - Missing or invalid config.yaml file
 - Incorrect volume mount paths
 - Insufficient permissions
 
 **Config file not found in Docker**
+
 ```
 Error: Configuration file not found: config.yaml
 ```
+
 Solution: Ensure config.yaml exists in the same directory as docker-compose.yml and the volume mount is correct:
+
 ```bash
 # Check if config.yaml exists
 ls -la config.yaml
@@ -923,10 +1014,13 @@ ls -la config.yaml
 ```
 
 **Browser automation fails in Docker**
+
 ```
 Error: Browser type does not exist
 ```
+
 Solution: The Dockerfile includes browser installation. If this fails, try rebuilding:
+
 ```bash
 docker-compose down
 docker-compose build --no-cache
@@ -934,10 +1028,13 @@ docker-compose up -d
 ```
 
 **Logs not persisting**
+
 ```
 Logs disappear when container restarts
 ```
+
 Solution: Ensure logs directory exists and is properly mounted:
+
 ```bash
 mkdir -p logs
 # Check docker-compose.yml has: - ./logs:/app/logs
@@ -952,6 +1049,7 @@ task run-debug
 ```
 
 This automatically sets LOG_LEVEL=DEBUG and shows detailed information about:
+
 - Browser navigation and page loading
 - Number of calendar cells detected
 - Sample dates found on the page
@@ -963,9 +1061,11 @@ This automatically sets LOG_LEVEL=DEBUG and shows detailed information about:
 ### Environment Variables
 
 You can override configuration using environment variables:
+
 - `LOG_LEVEL`: Override logging level (DEBUG, INFO, WARNING, ERROR)
 
 Example:
+
 ```bash
 LOG_LEVEL=DEBUG task run
 ```
