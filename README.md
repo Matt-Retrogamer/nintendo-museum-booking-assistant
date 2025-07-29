@@ -1,8 +1,46 @@
 # Nintendo Museum Booking Assistant
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Test Coverage](https://img.shields.io/badge/coverage-82%25-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-40%20passing-brightgreen.svg)](#testing)
+
 A Python-based tool that monitors the Nintendo Museum ticket booking website for availability and sends webhook notifications when tickets become available for specified dates.
 
 This project ports the core functionality from the original [Nintendo Museum Reservation Notifier](https://github.com/zhxie/nintendo-museum-reservation-notifier) into a modern, async Python application with IFTTT webhook integration and headless browser automation.
+
+## ⚡ Quick Start
+
+**New to this?** Skip to the [Quick Start Guide](#quick-start-guide) for a step-by-step walkthrough.
+
+**Want to deploy on a server?** See [Deployment Recommendations](#deployment-recommendations).
+
+**Need help?** Check the [Troubleshooting](#troubleshooting) section for common issues.
+
+## Table of Contents
+
+- [Quick Start Guide](#quick-start-guide) - **Start here if you're new**
+- [Features](#features)
+- [Prerequisites Installation](#prerequisites-installation)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [IFTTT Webhook Setup](#ifttt-webhook-setup)
+- [Deployment Recommendations](#deployment-recommendations)
+- [Docker Deployment](#docker-deployment)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+- [Testing](#testing)
+- [Contributing](#contributing)
+
+## 🚀 Status
+
+**✅ Fully Functional & Production Ready**
+
+This tool is actively working and successfully monitoring the Nintendo Museum calendar. It correctly detects availability changes and sends notifications through IFTTT webhooks.
+
+**What it monitors:** Nintendo Museum ticket booking calendar at [museum-tickets.nintendo.com](https://museum-tickets.nintendo.com/en/calendar)
+**How it works:** Detects when date CSS classes change from "soldOut" to "sale"
+**Notifications:** Sends webhooks to IFTTT for push notifications, emails, SMS, etc.
 
 ## Features
 
@@ -43,6 +81,77 @@ The notification system intelligently tracks availability changes:
 - Date reappears → ✅ **New alert sent** (after 5-minute grace period)
 
 This ensures you don't miss slots that pop in and out of availability due to high demand, while preventing notification spam through a built-in grace period.
+
+## Quick Start Guide
+
+**New to this project?** Follow this step-by-step guide:
+
+### Step 1: Install Prerequisites
+
+First, install the required tools on your system:
+
+- **macOS users:** Install [Homebrew](https://brew.sh), then run:
+  ```bash
+  brew install uv go-task
+  ```
+
+- **Ubuntu/Linux users:** Run:
+  ```bash
+  sudo snap install astral-uv --classic
+  sudo snap install task --classic
+  ```
+
+### Step 2: Get the Code and Setup
+
+```bash
+# Clone the project
+git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
+cd nintendo-museum-booking-assistant
+
+# Install everything needed
+task install
+```
+
+### Step 3: Configure Your Monitoring
+
+```bash
+# Copy the example configuration
+cp config.example.yaml config.yaml
+
+# Edit the configuration file
+nano config.yaml  # or use your preferred editor
+```
+
+**Required changes in config.yaml:**
+1. **Set your target dates** - Replace the example dates with the dates you want to monitor (see important note below)
+2. **Get an IFTTT webhook URL** - Follow the [IFTTT setup guide](#ifttt-webhook-setup) below
+3. **Update the webhook URL** - Replace `YOUR_IFTTT_KEY` with your actual IFTTT key
+
+> **📅 Important: Which dates should you monitor?**
+> 
+> Only monitor dates that are **2-6 months in the future**. Nintendo typically releases tickets in batches a few months ahead of time. Monitoring dates too far in the future or dates that have already passed won't yield results.
+> 
+> **Example:** If it's July 2025, monitor dates like September-December 2025, not dates in 2026 or past dates.
+
+### Step 4: Test Your Setup
+
+```bash
+# Test your webhook configuration
+task test-webhook
+```
+
+You should receive a test notification if everything is configured correctly.
+
+### Step 5: Start Monitoring
+
+```bash
+# Start the monitoring service
+task run
+```
+
+The application will continuously monitor for availability and send notifications when tickets become available.
+
+**Need help?** Check the [Troubleshooting](#troubleshooting) section if you encounter any issues.
 
 ## Requirements
 
@@ -131,7 +240,7 @@ Task version: v3.38.0
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
 ```
 
@@ -158,7 +267,7 @@ uv run playwright install-deps chromium
 
 1. **Install and setup:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
 task install
 ```
@@ -273,7 +382,7 @@ docker-compose up -d
 **For VPS/Server Deployment:**
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
 
 # Install prerequisites (uv and task)
@@ -299,7 +408,7 @@ task run
 **For Docker Deployment:**
 ```bash
 # Clone and setup
-git clone <repository-url>
+git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
 
 # Create your config file
@@ -315,26 +424,6 @@ docker-compose logs -f
 # Stop the service
 docker-compose down
 ```
-
-## Current Status ✅
-
-**Fully Functional** - Successfully monitors Nintendo Museum calendar with:
-- ✅ **JavaScript Support**: Playwright headless browser handles dynamic content
-- ✅ **Calendar Detection**: Successfully finds 168+ date cells on the page
-- ✅ **Target Date Recognition**: Correctly identifies and monitors your specified dates
-- ✅ **Availability Detection**: Monitors for "sale" vs "soldOut" CSS classes
-- ✅ **IFTTT Integration**: Webhook notifications working and tested
-- ✅ **Debug Capabilities**: Comprehensive logging and troubleshooting tools
-- ✅ **Production Ready**: Robust error handling and graceful shutdown
-
-**Example Debug Output:**
-```
-2025-07-28 10:11:16,627 - Found 168 date cells on page
-2025-07-28 10:11:16,639 - Found date cell for 2025-09-25
-2025-07-28 10:11:16,640 - Actual class for 2025-09-25: soldOut
-```
-
-When tickets become available, the class will change from "soldOut" to "sale" and trigger notifications.
 
 ## Configuration
 
@@ -377,17 +466,35 @@ logging:
 
 ### IFTTT Webhook Setup
 
-1. Create an IFTTT account at [ifttt.com](https://ifttt.com)
-2. Create a new applet:
-   - **Trigger**: Webhooks → Receive a web request
-   - **Event Name**: `nintendo_museum_available` (or your chosen event name)
-   - **Action**: Choose your preferred notification method (notifications, email, SMS, etc.)
+**Step-by-step IFTTT configuration:**
 
-3. Get your webhook URL from the [IFTTT Webhooks service page](https://ifttt.com/maker_webhooks)
-   - Go to "Settings" to see your key
-   - Your webhook URL format: `https://maker.ifttt.com/trigger/{event_name}/with/key/{your_key}`
+1. **Create an IFTTT account** at [ifttt.com](https://ifttt.com) (free account is sufficient)
 
-4. Update the `webhook.url` in your `config.yaml`
+2. **Create a new applet:**
+   - Click "Create" → "If This Then That"
+   - **Choose "This" (Trigger):** Search for "Webhooks" → Select "Receive a web request"
+   - **Event Name:** Enter `nintendo_museum_available` (must match your config)
+   - Click "Create trigger"
+
+3. **Choose "That" (Action):** Select your preferred notification method:
+   - **Notifications:** For mobile push notifications (recommended)
+   - **Email:** For email alerts
+   - **SMS:** For text messages (may require paid plan)
+   - **Other:** Discord, Slack, etc.
+
+4. **Get your webhook URL:**
+   - Go to [IFTTT Webhooks service page](https://ifttt.com/maker_webhooks)
+   - Click "Documentation"
+   - Copy your webhook URL (it looks like: `https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/YOUR_KEY_HERE`)
+
+5. **Update your config.yaml:**
+   - Replace `YOUR_IFTTT_KEY` in the webhook URL with your actual key
+   - Save the file
+
+**Example webhook URL format:**
+```
+https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/dAbCdEfGhIjKlMnOpQrStUvWxYz
+```
 
 ## Notification Behavior
 
@@ -697,7 +804,15 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Disclaimer
 
-This tool is for personal use only and is not affiliated with Nintendo. Please use responsibly and in accordance with Nintendo's terms of service. The tool does not automatically book tickets - it only notifies you when availability is detected.
+⚠️ **Important Notes:**
+
+- **Not affiliated with Nintendo**: This is an independent monitoring tool
+- **Personal use only**: Use responsibly and respect Nintendo's terms of service  
+- **No automatic booking**: This tool only sends notifications - you must manually book tickets
+- **No guarantees**: Ticket availability depends on Nintendo's systems and demand
+- **Monitor dates that make sense**: Only monitor dates when tickets are typically released (usually a few months in advance)
+
+**Respect the website:** The tool includes built-in rate limiting (10-second intervals) to be respectful to Nintendo's servers.
 
 ## Troubleshooting
 
