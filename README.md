@@ -37,8 +37,9 @@ This project ports the core functionality from the original [Nintendo Museum Res
 
 - [Quick Start Guide](#quick-start-guide) - **Start here if you're new**
 - [Features](#features)
+- [Requirements](#requirements)
 - [Prerequisites Installation](#prerequisites-installation)
-- [Installation](#installation)
+- [Installation and Setup](#installation-and-setup)
 - [Configuration](#configuration)
 - [IFTTT Webhook Setup](#ifttt-webhook-setup)
 - [Deployment Recommendations](#deployment-recommendations)
@@ -83,6 +84,8 @@ This ensures you don't miss slots that pop in and out of availability due to hig
 
 **New to this project?** Follow this step-by-step guide:
 
+> **⚠️ Before you start:** Make sure you have **Git** and **Python 3.11+** installed first! Check the [Requirements](#requirements) section above for simple installation commands if you don't have these tools yet.
+
 ### Step 1: Install Prerequisites
 
 First, install the required tools on your system:
@@ -99,6 +102,8 @@ First, install the required tools on your system:
   sudo snap install astral-uv --classic
   sudo snap install task --classic
   ```
+
+- **Windows users:** Use WSL with Ubuntu (see [Requirements](#requirements) section), then follow Ubuntu instructions above
 
 ### Step 2: Get the Code and Setup
 
@@ -155,7 +160,11 @@ The application will continuously monitor for availability and send notification
 
 ## Requirements
 
-- Python 3.11 or higher
+**Core requirements:**
+
+- **Git** (to download the code): `brew install git` (macOS) or `sudo apt install git` (Ubuntu/Linux)
+- **Python 3.11+**: `brew install python` (macOS) or `sudo apt install python3` (Ubuntu/Linux or equivalent for your Linux distribution)
+- **Windows users**: Use [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install) with Ubuntu, then follow Linux instructions
 - [uv](https://github.com/astral-sh/uv) for dependency management
 - [Task](https://taskfile.dev) for running common tasks (optional but recommended)
 - Playwright browser binaries (automatically installed with `task install`)
@@ -239,20 +248,17 @@ $ task --version
 Task version: v3.38.0
 ```
 
-## Installation
+## Installation and Setup
 
-**Prerequisites:** Make sure you have installed [uv and Task](#prerequisites-installation) before proceeding.
+**For experienced users** - condensed installation steps. **New users should follow the [Quick Start Guide](#quick-start-guide) above instead.**
 
-1. Clone the repository:
+**Prerequisites:** Ensure you have [uv and Task installed](#prerequisites-installation) first.
+
+1. **Install and setup:**
 
 ```bash
 git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
 cd nintendo-museum-booking-assistant
-```
-
-2. Install all dependencies (Python packages + browser binaries):
-
-```bash
 task install
 ```
 
@@ -268,18 +274,6 @@ This will automatically:
 uv sync --dev
 uv run playwright install chromium
 uv run playwright install-deps chromium
-```
-
-## Quick Start
-
-**Prerequisites:** Ensure you have [uv and Task installed](#prerequisites-installation) first.
-
-1. **Install and setup:**
-
-```bash
-git clone https://github.com/Matt-Retrogamer/nintendo-museum-booking-assistant.git
-cd nintendo-museum-booking-assistant
-task install
 ```
 
 2. **Create configuration:**
