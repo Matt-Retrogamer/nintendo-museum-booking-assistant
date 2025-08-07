@@ -137,3 +137,49 @@ class TestBookingAssistant:
                 await assistant.run()
 
                 mock_poller.stop_polling.assert_called_once()
+                # Webhook test should NOT be called with INFO level
+                mock_webhook.test_webhook.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_run_webhook_test_in_debug_mode(self, temp_config_file):
+        """Test that webhook test runs only in debug mode."""
+        # Modify config to use DEBUG logging
+        with open(temp_config_file, "r") as f:
+            config_data = yaml.safe_load(f)
+        config_data["logging"]["level"] = "DEBUG"
+        with open(temp_config_file, "w") as f:
+            yaml.dump(config_data, f)
+
+        assistant = BookingAssistant(temp_config_file)
+
+        # Mock all the components
+        with (
+            patch("src.main.AvailabilityPoller") as mock_poller_class,
+            patch("src.main.NotificationManager") as mock_notifier_class,
+            patch.object(assistant, "setup_signal_handlers"),
+            patch("asyncio.sleep"),
+        ):
+            # Mock poller
+            mock_poller = AsyncMock()
+            mock_poller.start_polling = AsyncMock()
+            mock_poller.stop_polling = MagicMock()
+            mock_poller_class.return_value.__aenter__.return_value = mock_poller
+
+            # Mock notifier for webhook test
+            mock_notifier = AsyncMock()
+            mock_webhook = AsyncMock()
+            mock_webhook.test_webhook.return_value = True
+            mock_notifier.__aenter__.return_value = mock_webhook
+            mock_notifier_class.return_value = mock_notifier
+
+            # Mock the webhook notifier import
+            with patch("src.notifier.WebhookNotifier", return_value=mock_notifier):
+                # Simulate immediate shutdown
+                assistant._shutdown_event.set()
+
+                # Run should complete without errors
+                await assistant.run()
+
+                mock_poller.stop_polling.assert_called_once()
+                # Webhook test SHOULD be called with DEBUG level
+                mock_webhook.test_webhook.assert_called_once()

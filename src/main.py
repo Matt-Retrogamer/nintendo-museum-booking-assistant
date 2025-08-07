@@ -90,19 +90,22 @@ class BookingAssistant:
         self.setup_signal_handlers()
 
         try:
-            # Test webhook configuration first
-            logger.info("Testing webhook configuration...")
-            from .notifier import WebhookNotifier
+            # Test webhook configuration only in debug mode
+            if self.config.logging.level == "DEBUG":
+                logger.debug("Testing webhook configuration in debug mode...")
+                from .notifier import WebhookNotifier
 
-            async with WebhookNotifier(self.config) as webhook:
-                webhook_test_ok = await webhook.test_webhook()
+                async with WebhookNotifier(self.config) as webhook:
+                    webhook_test_ok = await webhook.test_webhook()
 
-            if not webhook_test_ok:
-                logger.warning(
-                    "Webhook test failed - notifications may not work properly"
-                )
+                if not webhook_test_ok:
+                    logger.warning(
+                        "Webhook test failed - notifications may not work properly"
+                    )
+                else:
+                    logger.debug("Webhook test successful")
             else:
-                logger.info("Webhook test successful")
+                logger.info("Webhook test skipped (only runs in debug mode)")
 
             # Start polling
             async with AvailabilityPoller(self.config) as poller:
