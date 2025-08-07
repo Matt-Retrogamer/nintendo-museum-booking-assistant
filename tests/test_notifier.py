@@ -20,7 +20,7 @@ from src.notifier import NotificationManager, WebhookNotifier
 def mock_config():
     """Create a mock configuration for testing."""
     return Config(
-        target_dates=["2025-09-25", "2025-09-26"],
+        target_dates=["2025-10-25", "2025-10-26"],
         polling=PollingConfig(interval_seconds=1, page_load_delay_seconds=0),
         webhook=WebhookConfig(
             url="https://maker.ifttt.com/trigger/test/with/key/test_key",
@@ -39,15 +39,15 @@ class TestWebhookNotifier:
     async def test_prepare_payload(self, mock_config):
         """Test payload preparation for webhook."""
         notifier = WebhookNotifier(mock_config)
-        available_dates = {"2025-09-25", "2025-09-26"}
+        available_dates = {"2025-10-25", "2025-10-26"}
 
         payload = notifier._prepare_payload(available_dates)
 
         assert "value1" in payload
         assert "value2" in payload
         assert "value3" in payload
-        assert "2025-09-25" in payload["value1"]
-        assert "2025-09-26" in payload["value1"]
+        assert "2025-10-25" in payload["value1"]
+        assert "2025-10-26" in payload["value1"]
         assert str(mock_config.website.url) == payload["value2"]
 
     @pytest.mark.asyncio
@@ -61,7 +61,7 @@ class TestWebhookNotifier:
             mock_post.return_value.__aenter__.return_value = mock_response
 
             async with WebhookNotifier(mock_config) as notifier:
-                success = await notifier.send_notification({"2025-09-25"})
+                success = await notifier.send_notification({"2025-10-25"})
 
             assert success is True
             mock_post.assert_called_once()
@@ -74,7 +74,7 @@ class TestWebhookNotifier:
             mock_post.side_effect = Exception("Network error")
 
             async with WebhookNotifier(mock_config) as notifier:
-                success = await notifier.send_notification({"2025-09-25"})
+                success = await notifier.send_notification({"2025-10-25"})
 
             assert success is False
 
@@ -117,11 +117,11 @@ class TestNotificationManager:
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
             # First call with available dates
-            available_dates = {"2025-09-25"}
+            available_dates = {"2025-10-25"}
             result = await manager.notify_if_needed(available_dates)
 
             assert result is True
-            mock_notifier.send_notification.assert_called_once_with({"2025-09-25"})
+            mock_notifier.send_notification.assert_called_once_with({"2025-10-25"})
 
     @pytest.mark.asyncio
     async def test_notify_if_needed_no_change(self, mock_config):
@@ -134,7 +134,7 @@ class TestNotificationManager:
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
             # First call - should notify
-            available_dates = {"2025-09-25"}
+            available_dates = {"2025-10-25"}
             result1 = await manager.notify_if_needed(available_dates)
             assert result1 is True
 
@@ -156,7 +156,7 @@ class TestNotificationManager:
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
             # First: Date becomes available
-            result1 = await manager.notify_if_needed({"2025-09-25"})
+            result1 = await manager.notify_if_needed({"2025-10-25"})
             assert result1 is True
 
             # Second: Date disappears
@@ -164,7 +164,7 @@ class TestNotificationManager:
             assert result2 is False
 
             # Third: Date reappears (should notify again, but rate limited)
-            result3 = await manager.notify_if_needed({"2025-09-25"})
+            result3 = await manager.notify_if_needed({"2025-10-25"})
             assert result3 is False  # Rate limited
 
             # Should be called only once due to rate limiting
@@ -184,7 +184,7 @@ class TestNotificationManager:
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
             # First: Date becomes available
-            result1 = await manager.notify_if_needed({"2025-09-25"})
+            result1 = await manager.notify_if_needed({"2025-10-25"})
             assert result1 is True
 
             # Second: Date disappears
@@ -192,7 +192,7 @@ class TestNotificationManager:
             assert result2 is False
 
             # Third: Date reappears (should notify again)
-            result3 = await manager.notify_if_needed({"2025-09-25"})
+            result3 = await manager.notify_if_needed({"2025-10-25"})
             assert result3 is True
 
             # Should be called twice
@@ -315,7 +315,7 @@ class TestNotificationManager:
             mock_post.side_effect = aiohttp.ClientError("Network error")
 
             async with WebhookNotifier(mock_config) as notifier:
-                result = await notifier.send_notification({"2025-09-25"})
+                result = await notifier.send_notification({"2025-10-25"})
                 assert result is False
 
     @pytest.mark.asyncio
@@ -325,7 +325,7 @@ class TestNotificationManager:
             mock_post.side_effect = ValueError("Unexpected error")
 
             async with WebhookNotifier(mock_config) as notifier:
-                result = await notifier.send_notification({"2025-09-25"})
+                result = await notifier.send_notification({"2025-10-25"})
                 assert result is False
 
     @pytest.mark.asyncio
@@ -348,5 +348,5 @@ class TestNotificationManager:
             mock_notifier.send_notification.return_value = False  # Simulate error
             mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
 
-            result = await manager.notify_if_needed({"2025-09-25"})
+            result = await manager.notify_if_needed({"2025-10-25"})
             assert result is False

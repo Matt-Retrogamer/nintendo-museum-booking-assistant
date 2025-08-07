@@ -16,7 +16,7 @@ from src.main import BookingAssistant
 def temp_config_file():
     """Create a temporary config file for testing."""
     config_data = {
-        "target_dates": ["2025-09-25", "2025-09-26"],
+        "target_dates": ["2025-10-25", "2025-10-26"],
         "polling": {"interval_seconds": 1, "page_load_delay_seconds": 0},
         "webhook": {
             "url": "https://maker.ifttt.com/trigger/test/with/key/test_key",
@@ -48,7 +48,7 @@ class TestBookingAssistant:
         assistant = BookingAssistant(temp_config_file)
 
         assert isinstance(assistant.config, Config)
-        assert assistant.config.target_dates == ["2025-09-25", "2025-09-26"]
+        assert assistant.config.target_dates == ["2025-10-25", "2025-10-26"]
         assert assistant.notification_manager is not None
 
     def test_setup_logging(self, temp_config_file):
@@ -72,7 +72,7 @@ class TestBookingAssistant:
         ) as mock_notify:
             mock_notify.return_value = True
 
-            available_dates = {"2025-09-25"}
+            available_dates = {"2025-10-25"}
             await assistant.handle_availability_found(available_dates)
 
             mock_notify.assert_called_once_with(available_dates)
@@ -84,12 +84,12 @@ class TestBookingAssistant:
 
         with patch("src.main.AvailabilityPoller") as mock_poller_class:
             mock_poller = AsyncMock()
-            mock_poller.check_availability.return_value = {"2025-09-25"}
+            mock_poller.check_availability.return_value = {"2025-10-25"}
             mock_poller_class.return_value.__aenter__.return_value = mock_poller
 
             result = await assistant.check_once()
 
-            assert result == {"2025-09-25"}
+            assert result == {"2025-10-25"}
             mock_poller.check_availability.assert_called_once_with(
                 assistant.config.target_dates
             )
@@ -195,7 +195,7 @@ class TestBookingAssistant:
         assistant.notification_manager.notify_if_needed.return_value = True
         assistant.notification_manager.send_heartbeat_if_needed.return_value = False
 
-        available_dates = {"2025-09-25", "2025-09-26"}
+        available_dates = {"2025-10-25", "2025-10-26"}
         await assistant.handle_availability_found(available_dates)
 
         assistant.notification_manager.notify_if_needed.assert_called_once_with(

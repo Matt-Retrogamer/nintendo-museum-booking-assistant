@@ -456,9 +456,9 @@ Create a `config.yaml` file in the project root (see `config.yaml` example):
 # Dates to monitor for available reservations
 # Format: YYYY-MM-DD
 target_dates:
-  - "2025-09-25"
-  - "2025-09-26" 
-  - "2025-09-27"
+  - "2025-10-25"
+  - "2025-10-26" 
+  - "2025-10-27"
 
 # Polling configuration
 polling:
@@ -550,18 +550,18 @@ The system includes a **5-minute grace period** between notifications to prevent
 **Scenario A: High-demand slot that flickers**
 
 ```
-10:00 AM - Date 2025-09-26 available → ✅ Alert sent
-10:01 AM - Date 2025-09-26 unavailable → No action
-10:02 AM - Date 2025-09-26 available → ❌ No alert (grace period)
-10:07 AM - Date 2025-09-26 unavailable → No action  
-10:08 AM - Date 2025-09-26 available → ✅ Alert sent (grace period expired)
+10:00 AM - Date 2025-10-26 available → ✅ Alert sent
+10:01 AM - Date 2025-10-26 unavailable → No action
+10:02 AM - Date 2025-10-26 available → ❌ No alert (grace period)
+10:07 AM - Date 2025-10-26 unavailable → No action  
+10:08 AM - Date 2025-10-26 available → ✅ Alert sent (grace period expired)
 ```
 
 **Scenario B: Multiple dates becoming available**
 
 ```
-10:00 AM - Date 2025-09-26 available → ✅ Alert sent
-10:05 AM - Dates 2025-09-26, 2025-09-27 available → ✅ Alert sent (for new date 2025-09-27)
+10:00 AM - Date 2025-10-26 available → ✅ Alert sent
+10:05 AM - Dates 2025-10-26, 2025-10-27 available → ✅ Alert sent (for new date 2025-10-27)
 ```
 
 This behavior ensures you don't miss opportunities while avoiding notification fatigue.
@@ -602,7 +602,7 @@ The webhook sends the following data to IFTTT:
 
 ```json
 {
-  "value1": "2025-09-25, 2025-09-26",  // Available dates (comma-separated)
+  "value1": "2025-10-25, 2025-10-26",  // Available dates (comma-separated)
   "value2": "https://museum-tickets.nintendo.com/en/calendar",  // Link to booking site
   "value3": "2025-07-28T14:30:00.123456"  // Timestamp when availability was found
 }
@@ -956,7 +956,7 @@ task install
 **Date cells showing "soldOut" instead of availability**
 
 ```
-Actual class for 2025-09-25: soldOut
+Actual class for 2025-10-25: soldOut
 ```
 
 This is normal when tickets aren't available yet. The application will detect when the class changes to "sale".

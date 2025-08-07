@@ -12,7 +12,7 @@ from src.poller import AvailabilityPoller
 def mock_config():
     """Mock configuration for testing."""
     return Config(
-        target_dates=["2025-09-25", "2025-09-26"],
+        target_dates=["2025-10-25", "2025-10-26"],
         polling={
             "interval_seconds": 1,
             "page_load_delay_seconds": 0,
@@ -77,7 +77,7 @@ class TestAvailabilityPoller:
 
             # Mock finding date cells
             mock_page.query_selector.side_effect = lambda selector: (
-                MagicMock() if "2025-09-25" in selector else None
+                MagicMock() if "2025-10-25" in selector else None
             )
 
             # Mock JavaScript evaluation - return True for availability
@@ -85,10 +85,10 @@ class TestAvailabilityPoller:
 
             async with AvailabilityPoller(mock_config) as poller:
                 available_dates = await poller.check_availability(
-                    ["2025-09-25", "2025-09-26"]
+                    ["2025-10-25", "2025-10-26"]
                 )
 
-            assert "2025-09-25" in available_dates
+            assert "2025-10-25" in available_dates
             mock_page.goto.assert_called_once()
             mock_page.close.assert_called_once()
 
@@ -115,7 +115,7 @@ class TestAvailabilityPoller:
             mock_page.query_selector.return_value = None  # No date cells found
 
             async with AvailabilityPoller(mock_config) as poller:
-                available_dates = await poller.check_availability(["2025-09-25"])
+                available_dates = await poller.check_availability(["2025-10-25"])
 
             assert available_dates == set()
 
@@ -139,7 +139,7 @@ class TestAvailabilityPoller:
             mock_page.goto.side_effect = Exception("Page load error")
 
             async with AvailabilityPoller(mock_config) as poller:
-                available_dates = await poller.check_availability(["2025-09-25"])
+                available_dates = await poller.check_availability(["2025-10-25"])
 
             assert available_dates == set()
 
@@ -151,15 +151,15 @@ class TestAvailabilityPoller:
         # Mock page object
         mock_page = AsyncMock()
         mock_cell = MagicMock()
-        mock_cell.get_attribute.return_value = "2025-09-25"
+        mock_cell.get_attribute.return_value = "2025-10-25"
 
         mock_page.query_selector_all.return_value = [mock_cell]
         mock_page.query_selector.return_value = mock_cell
         mock_page.evaluate.return_value = True  # Available
 
-        available_dates = await poller._check_dates_on_page(mock_page, ["2025-09-25"])
+        available_dates = await poller._check_dates_on_page(mock_page, ["2025-10-25"])
 
-        assert "2025-09-25" in available_dates
+        assert "2025-10-25" in available_dates
 
     @pytest.mark.asyncio
     async def test_check_dates_on_page_no_availability(self, mock_config):
@@ -171,7 +171,7 @@ class TestAvailabilityPoller:
         mock_page.query_selector_all.return_value = []
         mock_page.query_selector.return_value = None
 
-        available_dates = await poller._check_dates_on_page(mock_page, ["2025-09-25"])
+        available_dates = await poller._check_dates_on_page(mock_page, ["2025-10-25"])
 
         assert available_dates == set()
 
@@ -241,6 +241,6 @@ class TestAvailabilityPoller:
             async with AvailabilityPoller(mock_config) as poller:
                 # First call fails
                 mock_page.goto.side_effect = Exception("Network error")
-                result1 = await poller.check_availability(["2025-09-25"])
+                result1 = await poller.check_availability(["2025-10-25"])
                 assert result1 == set()
                 assert poller._has_error is True

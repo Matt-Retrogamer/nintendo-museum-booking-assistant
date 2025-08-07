@@ -13,7 +13,7 @@ from src.config import Config, load_config
 def sample_config_data():
     """Sample configuration data for testing."""
     return {
-        "target_dates": ["2025-09-25", "2025-09-26"],
+        "target_dates": ["2025-10-25", "2025-10-26"],
         "polling": {"interval_seconds": 10, "page_load_delay_seconds": 2},
         "webhook": {
             "url": "https://maker.ifttt.com/trigger/test/with/key/test_key",
@@ -52,7 +52,7 @@ class TestConfig:
         config = load_config(config_file)
 
         assert isinstance(config, Config)
-        assert config.target_dates == ["2025-09-25", "2025-09-26"]
+        assert config.target_dates == ["2025-10-25", "2025-10-26"]
         assert config.polling.interval_seconds == 10
         assert config.webhook.event_name == "test_event"
 
@@ -120,7 +120,7 @@ class TestConfig:
 
         # Create config without logging section
         config_data = {
-            "target_dates": ["2025-09-25"],
+            "target_dates": ["2025-10-25"],
             "polling": {"interval_seconds": 10},
             "webhook": {"url": "https://test.com", "event_name": "test"},
             "website": {"url": "https://test.com"},

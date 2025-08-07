@@ -4,9 +4,9 @@
 # Dates to monitor for available reservations
 # Format: YYYY-MM-DD
 target_dates:
-  - "2025-09-25"  # Replace with your desired dates
-  - "2025-09-26"
-  - "2025-09-27"
+  - "2025-10-25"  # Replace with your desired dates
+  - "2025-10-26"
+  - "2025-10-27"
 
 # Polling configuration
 polling:
