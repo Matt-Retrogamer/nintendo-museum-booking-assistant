@@ -145,7 +145,7 @@ class TestBookingAssistant:
     async def test_run_webhook_test_in_debug_mode(self, temp_config_file):
         """Test that webhook test runs only in debug mode."""
         # Modify config to use DEBUG logging
-        with open(temp_config_file, "r") as f:
+        with open(temp_config_file) as f:
             config_data = yaml.safe_load(f)
         config_data["logging"]["level"] = "DEBUG"
         with open(temp_config_file, "w") as f:
@@ -189,56 +189,64 @@ class TestBookingAssistant:
     async def test_handle_availability_found_with_dates(self, temp_config_file):
         """Test handle_availability_found with available dates."""
         assistant = BookingAssistant(temp_config_file)
-        
+
         # Mock notification manager
         assistant.notification_manager = AsyncMock()
         assistant.notification_manager.notify_if_needed.return_value = True
         assistant.notification_manager.send_heartbeat_if_needed.return_value = False
-        
+
         available_dates = {"2025-09-25", "2025-09-26"}
         await assistant.handle_availability_found(available_dates)
-        
-        assistant.notification_manager.notify_if_needed.assert_called_once_with(available_dates)
+
+        assistant.notification_manager.notify_if_needed.assert_called_once_with(
+            available_dates
+        )
         assistant.notification_manager.send_heartbeat_if_needed.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_handle_availability_found_no_dates(self, temp_config_file):
         """Test handle_availability_found with no available dates."""
         assistant = BookingAssistant(temp_config_file)
-        
+
         # Mock notification manager
         assistant.notification_manager = AsyncMock()
         assistant.notification_manager.notify_if_needed.return_value = False
         assistant.notification_manager.send_heartbeat_if_needed.return_value = True
-        
+
         available_dates = set()
         await assistant.handle_availability_found(available_dates)
-        
-        assistant.notification_manager.notify_if_needed.assert_called_once_with(available_dates)
+
+        assistant.notification_manager.notify_if_needed.assert_called_once_with(
+            available_dates
+        )
         assistant.notification_manager.send_heartbeat_if_needed.assert_called_once()
 
     def test_signal_handler_execution(self, temp_config_file):
         """Test that signal handlers actually work when called."""
         assistant = BookingAssistant(temp_config_file)
-        
+
         # Manually call the signal handler function
         with patch("signal.signal") as mock_signal:
             assistant.setup_signal_handlers()
-            
+
             # Get the signal handler function that was registered
             signal_handler_func = mock_signal.call_args_list[0][0][1]
-            
+
             # Call the signal handler
             signal_handler_func(signal.SIGINT, None)
-            
+
             # Verify shutdown event was set
             assert assistant._shutdown_event.is_set()
 
     @pytest.mark.asyncio
     async def test_main_no_config_file(self):
         """Test main function with missing config file."""
-        with patch("sys.exit") as mock_exit, patch("pathlib.Path.exists", return_value=False):
+        with (
+            patch("sys.exit") as mock_exit,
+            patch("pathlib.Path.exists", return_value=False),
+        ):
             from src.main import main
+
             await main()
             # sys.exit is called once for missing config and once for the exception handler
             assert mock_exit.call_count >= 1
