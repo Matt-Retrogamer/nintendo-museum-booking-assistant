@@ -1,5 +1,6 @@
 """Tests for webhook notification functionality."""
 
+import aiohttp
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -306,3 +307,46 @@ class TestNotificationManager:
                 )
                 assert json_data["value2"] == "Service is running normally"
                 assert "value3" in json_data  # Timestamp should be present
+
+    @pytest.mark.asyncio
+    async def test_webhook_notifier_send_webhook_client_error(self, mock_config):
+        """Test webhook notifier send with client error."""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            mock_post.side_effect = aiohttp.ClientError("Network error")
+
+            async with WebhookNotifier(mock_config) as notifier:
+                result = await notifier.send_notification({"2025-09-25"})
+                assert result is False
+
+    @pytest.mark.asyncio 
+    async def test_webhook_notifier_send_webhook_general_exception(self, mock_config):
+        """Test webhook notifier send with general exception."""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            mock_post.side_effect = ValueError("Unexpected error")
+
+            async with WebhookNotifier(mock_config) as notifier:
+                result = await notifier.send_notification({"2025-09-25"})
+                assert result is False
+
+    @pytest.mark.asyncio
+    async def test_webhook_notifier_test_webhook_exception(self, mock_config):
+        """Test webhook notifier test with exception."""
+        with patch("aiohttp.ClientSession.post") as mock_post:
+            mock_post.side_effect = Exception("Test error")
+
+            async with WebhookNotifier(mock_config) as notifier:
+                result = await notifier.test_webhook()
+                assert result is False
+
+    @pytest.mark.asyncio
+    async def test_notification_manager_notify_if_needed_error(self, mock_config):
+        """Test notification manager with webhook error."""
+        manager = NotificationManager(mock_config)
+        
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_notification.return_value = False  # Simulate error
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+            
+            result = await manager.notify_if_needed({"2025-09-25"})
+            assert result is False

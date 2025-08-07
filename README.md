@@ -2,8 +2,8 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Test Coverage](https://img.shields.io/badge/coverage-82%25-brightgreen.svg)](#testing)
-[![Tests](https://img.shields.io/badge/tests-40%20passing-brightgreen.svg)](#testing)
+[![Test Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-53%20passing-brightgreen.svg)](#testing)
 
 A Python-based tool that monitors the Nintendo Museum ticket booking website for availability and sends webhook notifications when tickets become available for specified dates.
 
@@ -834,12 +834,12 @@ Run tests with coverage:
 task test-cov
 ```
 
-Current test coverage: **82%** with **40 comprehensive tests** including:
+Current test coverage: **88%** with **53 comprehensive tests** including:
 
-- **5 configuration tests** covering validation and error cases
-- **9 polling tests** including browser automation and error recovery  
-- **15 notification tests** covering webhooks, smart notification behavior, and heartbeat functionality
-- **6 main application tests** covering workflow and signal handling
+- **9 configuration tests** covering validation and error cases (including environment variable handling)
+- **11 main application tests** covering workflow, signal handling, and debug behavior  
+- **19 notification tests** covering webhooks, smart notification behavior, heartbeat functionality, and error handling
+- **9 poller tests** including core functionality and browser automation basics
 - **5 URL masking tests** for security and privacy
 
 ## Contributing

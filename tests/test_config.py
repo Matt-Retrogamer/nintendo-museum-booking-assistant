@@ -84,6 +84,59 @@ class TestConfig:
         with pytest.raises(ValueError, match="Invalid logging level"):
             Config(**sample_config_data)
 
+    def test_config_validation_webhook_timeout(self, sample_config_data):
+        """Test validation of webhook timeout."""
+        sample_config_data["webhook"]["timeout_seconds"] = 0
+        with pytest.raises(ValueError, match="Webhook timeout must be at least 1 second"):
+            Config(**sample_config_data)
+
+    def test_config_validation_heartbeat_interval_negative(self, sample_config_data):
+        """Test validation of negative heartbeat interval."""
+        sample_config_data["webhook"]["heartbeat_interval_hours"] = -1
+        with pytest.raises(ValueError, match="Heartbeat interval must be 0"):
+            Config(**sample_config_data)
+
+    def test_load_config_with_log_level_env_var(self, config_file):
+        """Test loading config with LOG_LEVEL environment variable."""
+        import os
+        
+        # Set environment variable
+        os.environ["LOG_LEVEL"] = "DEBUG"
+        
+        try:
+            config = load_config(config_file)
+            assert config.logging.level == "DEBUG"
+        finally:
+            # Clean up
+            del os.environ["LOG_LEVEL"]
+
+    def test_load_config_with_log_level_env_var_no_logging_section(self, tmp_path):
+        """Test loading config with LOG_LEVEL env var when no logging section exists."""
+        import os
+        import yaml
+        
+        # Create config without logging section
+        config_data = {
+            "target_dates": ["2025-09-25"],
+            "polling": {"interval_seconds": 10},
+            "webhook": {"url": "https://test.com", "event_name": "test"},
+            "website": {"url": "https://test.com"}
+        }
+        
+        config_path = tmp_path / "test_config.yaml"
+        with open(config_path, "w") as f:
+            yaml.dump(config_data, f)
+        
+        # Set environment variable
+        os.environ["LOG_LEVEL"] = "WARNING"
+        
+        try:
+            config = load_config(config_path)
+            assert config.logging.level == "WARNING"
+        finally:
+            # Clean up
+            del os.environ["LOG_LEVEL"]
+
     def test_load_nonexistent_config(self):
         """Test loading a non-existent configuration file."""
         with pytest.raises(FileNotFoundError):

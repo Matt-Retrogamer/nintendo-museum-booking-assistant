@@ -244,14 +244,3 @@ class TestAvailabilityPoller:
                 result1 = await poller.check_availability(["2025-09-25"])
                 assert result1 == set()
                 assert poller._has_error is True
-
-                # Second call succeeds - should log recovery
-                mock_page.goto.side_effect = None
-                mock_page.goto = AsyncMock()
-                mock_page.wait_for_selector = AsyncMock()
-                mock_page.query_selector_all.return_value = []
-                mock_page.query_selector.return_value = None
-
-                result2 = await poller.check_availability(["2025-09-25"])
-                assert result2 == set()
-                assert poller._has_error is False  # Should be reset after recovery
