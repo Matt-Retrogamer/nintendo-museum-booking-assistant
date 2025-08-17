@@ -237,8 +237,13 @@ class NotificationManager:
         Returns:
             True if heartbeat was sent, False otherwise
         """
+        # Check if heartbeat is enabled
+        if not self.config.webhook.heartbeat_enabled:
+            # Heartbeat disabled via flag
+            return False
+
         if not self.config.webhook.heartbeat_interval_hours:
-            # Heartbeat disabled
+            # Heartbeat disabled via interval
             return False
 
         now = datetime.now()

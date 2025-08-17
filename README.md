@@ -2,8 +2,8 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Test Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](#testing)
-[![Tests](https://img.shields.io/badge/tests-53%20passing-brightgreen.svg)](#testing)
+[![Test Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-59%20passing-brightgreen.svg)](#testing)
 
 A Python-based tool that monitors the Nintendo Museum ticket booking website for availability and sends webhook notifications when tickets become available for specified dates.
 
@@ -472,8 +472,10 @@ webhook:
   timeout_seconds: 30
   
   # Heartbeat configuration (optional)
+  # Enable/disable heartbeat notifications
+  heartbeat_enabled: true  # Set to false to completely disable heartbeat notifications
   # Send a heartbeat notification every N hours to confirm service is running
-  # Set to 0 or omit to disable heartbeat notifications
+  # Set to 0 or omit to disable heartbeat notifications (only when heartbeat_enabled is true)
   heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
 
 # Website configuration
@@ -574,8 +576,9 @@ The system can send periodic "heartbeat" notifications to confirm it's still run
 
 ```yaml
 webhook:
+  heartbeat_enabled: true  # Set to false to completely disable heartbeat notifications
   heartbeat_interval_hours: 24  # Send heartbeat every 24 hours
-  # Set to 0 or omit to disable heartbeat notifications
+  # Set heartbeat_interval_hours to 0 or omit to disable heartbeat notifications (only when heartbeat_enabled is true)
 ```
 
 **Heartbeat behavior:**
@@ -584,7 +587,8 @@ webhook:
 - Independent of availability notifications
 - Uses the same webhook endpoint with different payload
 - First heartbeat sent after the interval period (not immediately on startup)
-- Disabled by default (set `heartbeat_interval_hours: 0` or omit the field)
+- Can be disabled via `heartbeat_enabled: false` flag or by setting `heartbeat_interval_hours: 0`
+- Defaults to enabled (`heartbeat_enabled: true`) with 24-hour interval
 
 **Heartbeat webhook payload:**
 
@@ -834,11 +838,11 @@ Run tests with coverage:
 task test-cov
 ```
 
-Current test coverage: **88%** with **53 comprehensive tests** including:
+Current test coverage: **89%** with **59 comprehensive tests** including:
 
-- **9 configuration tests** covering validation and error cases (including environment variable handling)
+- **12 configuration tests** covering validation, error cases, and heartbeat_enabled flag functionality
 - **11 main application tests** covering workflow, signal handling, and debug behavior  
-- **19 notification tests** covering webhooks, smart notification behavior, heartbeat functionality, and error handling
+- **22 notification tests** covering webhooks, smart notification behavior, heartbeat functionality, and error handling
 - **9 poller tests** including core functionality and browser automation basics
 - **5 URL masking tests** for security and privacy
 
