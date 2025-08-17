@@ -51,6 +51,7 @@ class WebhookConfig(BaseModel):
     url: str
     event_name: str = "nintendo_museum_available"
     timeout_seconds: int = 30
+    heartbeat_enabled: bool = True
     heartbeat_interval_hours: int = 24
 
     @field_validator("timeout_seconds")

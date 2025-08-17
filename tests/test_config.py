@@ -19,6 +19,8 @@ def sample_config_data():
             "url": "https://maker.ifttt.com/trigger/test/with/key/test_key",
             "event_name": "test_event",
             "timeout_seconds": 30,
+            "heartbeat_enabled": True,
+            "heartbeat_interval_hours": 24,
         },
         "website": {
             "url": "https://museum-tickets.nintendo.com/en/calendar",
@@ -97,6 +99,25 @@ class TestConfig:
         sample_config_data["webhook"]["heartbeat_interval_hours"] = -1
         with pytest.raises(ValueError, match="Heartbeat interval must be 0"):
             Config(**sample_config_data)
+
+    def test_config_heartbeat_enabled_default(self, sample_config_data):
+        """Test that heartbeat_enabled defaults to True when not specified."""
+        # Remove heartbeat_enabled from config to test default
+        del sample_config_data["webhook"]["heartbeat_enabled"]
+        config = Config(**sample_config_data)
+        assert config.webhook.heartbeat_enabled is True
+
+    def test_config_heartbeat_enabled_false(self, sample_config_data):
+        """Test that heartbeat_enabled can be set to False."""
+        sample_config_data["webhook"]["heartbeat_enabled"] = False
+        config = Config(**sample_config_data)
+        assert config.webhook.heartbeat_enabled is False
+
+    def test_config_heartbeat_enabled_true(self, sample_config_data):
+        """Test that heartbeat_enabled can be explicitly set to True."""
+        sample_config_data["webhook"]["heartbeat_enabled"] = True
+        config = Config(**sample_config_data)
+        assert config.webhook.heartbeat_enabled is True
 
     def test_load_config_with_log_level_env_var(self, config_file):
         """Test loading config with LOG_LEVEL environment variable."""

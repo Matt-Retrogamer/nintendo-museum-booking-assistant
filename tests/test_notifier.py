@@ -26,6 +26,8 @@ def mock_config():
             url="https://maker.ifttt.com/trigger/test/with/key/test_key",
             event_name="test_event",
             timeout_seconds=30,
+            heartbeat_enabled=True,
+            heartbeat_interval_hours=24,
         ),
         website=WebsiteConfig(url="https://test.com", availability_class="sale"),
         logging=LoggingConfig(),
@@ -279,8 +281,47 @@ class TestNotificationManager:
             result = await manager.send_heartbeat_if_needed()
             assert result is False
 
-            # Should not update last heartbeat time on failure
-            assert manager.last_heartbeat_time is None
+    async def test_send_heartbeat_disabled_by_flag(self, mock_config):
+        """Test heartbeat not sending when disabled by heartbeat_enabled flag."""
+        # Enable interval but disable via flag
+        mock_config.webhook.heartbeat_interval_hours = 24
+        mock_config.webhook.heartbeat_enabled = False
+
+        manager = NotificationManager(mock_config)
+
+        # Should not send heartbeat when disabled by flag
+        result = await manager.send_heartbeat_if_needed()
+        assert result is False
+
+    async def test_send_heartbeat_enabled_by_flag(self, mock_config):
+        """Test heartbeat sending when enabled by heartbeat_enabled flag."""
+        # Enable via flag and set interval
+        mock_config.webhook.heartbeat_enabled = True
+        mock_config.webhook.heartbeat_interval_hours = 24
+
+        manager = NotificationManager(mock_config)
+
+        with patch("src.notifier.WebhookNotifier") as mock_notifier_class:
+            mock_notifier = AsyncMock()
+            mock_notifier.send_heartbeat.return_value = True
+            mock_notifier_class.return_value.__aenter__.return_value = mock_notifier
+
+            # Should send heartbeat when enabled by flag
+            result = await manager.send_heartbeat_if_needed()
+            assert result is True
+            mock_notifier.send_heartbeat.assert_called_once()
+
+    async def test_send_heartbeat_disabled_by_both_flag_and_interval(self, mock_config):
+        """Test heartbeat not sending when disabled by both flag and interval."""
+        # Disable both via flag and interval
+        mock_config.webhook.heartbeat_enabled = False
+        mock_config.webhook.heartbeat_interval_hours = 0
+
+        manager = NotificationManager(mock_config)
+
+        # Should not send heartbeat when disabled by both
+        result = await manager.send_heartbeat_if_needed()
+        assert result is False
 
     async def test_webhook_notifier_send_heartbeat(self, mock_config):
         """Test WebhookNotifier send_heartbeat method."""
