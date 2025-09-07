@@ -660,33 +660,29 @@ pip install -r requirements.txt
 
 #### 2. Configure VS Code
 
-Create or update your VS Code MCP settings file:
-
-**macOS:** `~/Library/Application Support/Code/User/globalStorage/github.copilot-chat/config.json`
-**Windows:** `%APPDATA%/Code/User/globalStorage/github.copilot-chat/config.json`  
-**Linux:** `~/.config/Code/User/globalStorage/github.copilot-chat/config.json`
-
-Add this configuration (replace `/path/to/your/project` with your actual path):
+The MCP server is already configured for this workspace! The configuration is stored in `.vscode/settings.json`:
 
 ```json
 {
-  "mcpServers": {
+  "github.copilot.chat.mcp.servers": {
     "nintendo-museum-config": {
-      "command": "python",
+      "command": "uv",
       "args": [
-        "/path/to/your/nintendo-museum-booking-assistant/mcp_server/main.py"
+        "run", 
+        "python", 
+        "mcp_server/main.py"
       ],
-      "env": {
-        "PYTHONPATH": "/path/to/your/nintendo-museum-booking-assistant"
-      }
+      "cwd": "."
     }
   }
 }
 ```
 
+This workspace-specific configuration means the MCP server will only be available when you have this project open in VS Code, keeping your global VS Code settings clean.
+
 #### 3. Restart VS Code
 
-Restart VS Code to load the new MCP server configuration.
+Simply restart VS Code to load the MCP configuration. The server will be available only when this project is open.
 
 #### 4. Test the Connection
 

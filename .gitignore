@@ -162,7 +162,7 @@ cython_debug/
 #  Reference: https://intellij-support.jetbrains.com/hc/en-articles/206544839
 
 # VSCode
-.vscode/
+#.vscode/
 *.code-workspace
 
 # Local project files

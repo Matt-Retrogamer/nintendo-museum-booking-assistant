@@ -1,0 +1,13 @@
+{
+  "github.copilot.chat.mcp.servers": {
+    "nintendo-museum-config": {
+      "command": "uv",
+      "args": [
+        "run", 
+        "python", 
+        "mcp_server/main.py"
+      ],
+      "cwd": "."
+    }
+  }
+}
