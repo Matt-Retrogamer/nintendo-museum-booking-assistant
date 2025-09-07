@@ -8,10 +8,25 @@ Provides tools for date management and IFTTT webhook configuration.
 
 import asyncio
 import json
+import sys
+import os
+from pathlib import Path
 from typing import Any, Dict, List
+
+# Add the project root to Python path for imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from fastmcp import FastMCP
-from .config_manager import ConfigManager
-from .validators import is_date_in_past, extract_ifttt_key
+
+# Import with fallback for both package and standalone execution
+try:
+    from .config_manager import ConfigManager
+    from .validators import is_date_in_past, extract_ifttt_key
+except ImportError:
+    # Fallback for standalone execution
+    from config_manager import ConfigManager
+    from validators import is_date_in_past, extract_ifttt_key
 
 
 # Initialize MCP server
@@ -382,14 +397,25 @@ def set_ifttt_webhook_key(key: str) -> Dict[str, Any]:
 
 async def main():
     """Run the MCP server."""
-    from mcp.server.stdio import stdio_server
+    print("Nintendo Museum Config Manager MCP Server is starting...")
+    print("This server provides tools for managing Nintendo Museum booking configuration.")
+    print()
+    print("Available tools:")
+    print("- get_config_status: Get overall config status")
+    print("- list_target_dates: List all target dates") 
+    print("- add_target_dates: Add new target dates")
+    print("- remove_target_dates: Remove specific target dates")
+    print("- clear_all_target_dates: Clear all target dates")
+    print("- set_target_dates: Replace all target dates")
+    print("- get_ifttt_webhook_status: Get webhook status")
+    print("- set_ifttt_webhook_url: Set webhook URL")
+    print("- set_ifttt_webhook_key: Set webhook key")
+    print()
+    print("Server ready for MCP connections...")
     
-    async with mcp.server.run_stdio() as streams:
-        await mcp.server.run(
-            streams[0], streams[1], mcp.create_initialization_options()
-        )
+    # Run the FastMCP server with stdio
+    await mcp.run_stdio_async()
 
 
 if __name__ == "__main__":
-    print("Starting Nintendo Museum Config Manager MCP Server...")
     asyncio.run(main())

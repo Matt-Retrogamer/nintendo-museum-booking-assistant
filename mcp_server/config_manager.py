@@ -4,7 +4,13 @@ import os
 import yaml
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
-from .validators import validate_dates_list, validate_ifttt_webhook_url
+
+# Import with fallback for both package and standalone execution
+try:
+    from .validators import validate_dates_list, validate_ifttt_webhook_url
+except ImportError:
+    # Fallback for standalone execution
+    from validators import validate_dates_list, validate_ifttt_webhook_url
 
 
 class ConfigManager:
