@@ -41,6 +41,7 @@ This project ports the core functionality from the original [Nintendo Museum Res
 - [Prerequisites Installation](#prerequisites-installation)
 - [Installation and Setup](#installation-and-setup)
 - [Configuration](#configuration)
+- [MCP Server - VS Code Integration](#mcp-server---vs-code-integration) - **Manage config with GitHub Copilot**
 - [IFTTT Webhook Setup](#ifttt-webhook-setup)
 - [Deployment Recommendations](#deployment-recommendations)
 - [Docker Deployment](#docker-deployment)
@@ -625,6 +626,97 @@ Example notification message:
 Book now: {{Value2}}
 Found at: {{Value3}}
 ```
+
+## MCP Server - VS Code Integration
+
+**🚀 New Feature**: Manage your Nintendo Museum booking configuration directly from GitHub Copilot in VS Code using natural language!
+
+The MCP (Model Context Protocol) server allows you to manage your target dates and IFTTT webhook settings without manually editing configuration files. Perfect for users who prefer GUI interactions over command-line editing.
+
+### What You Can Do
+
+**Date Management:**
+- Add dates: `"Add date 2025-12-25 to my Nintendo Museum config"`  
+- Remove dates: `"Remove date 2025-10-26 from Nintendo Museum target dates"`
+- List dates: `"Show me all Nintendo Museum target dates"`
+- Clear dates: `"Clear all Nintendo Museum target dates"`
+- Set dates: `"Set Nintendo Museum dates to 2025-11-15, 2025-11-16"`
+
+**IFTTT Webhook Management:**
+- Set webhook key: `"Set my Nintendo Museum IFTTT webhook key to abc123xyz"`
+- Check status: `"Show me Nintendo Museum IFTTT webhook status"`
+
+**General Status:**
+- View config: `"Show me Nintendo Museum booking assistant config status"`
+
+### Setup Instructions
+
+#### 1. Install MCP Server Dependencies
+
+```bash
+cd mcp_server
+pip install -r requirements.txt
+```
+
+#### 2. Configure VS Code
+
+Create or update your VS Code MCP settings file:
+
+**macOS:** `~/Library/Application Support/Code/User/globalStorage/github.copilot-chat/config.json`
+**Windows:** `%APPDATA%/Code/User/globalStorage/github.copilot-chat/config.json`  
+**Linux:** `~/.config/Code/User/globalStorage/github.copilot-chat/config.json`
+
+Add this configuration (replace `/path/to/your/project` with your actual path):
+
+```json
+{
+  "mcpServers": {
+    "nintendo-museum-config": {
+      "command": "python",
+      "args": [
+        "/path/to/your/nintendo-museum-booking-assistant/mcp_server/main.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/path/to/your/nintendo-museum-booking-assistant"
+      }
+    }
+  }
+}
+```
+
+#### 3. Restart VS Code
+
+Restart VS Code to load the new MCP server configuration.
+
+#### 4. Test the Connection
+
+In VS Code, ask GitHub Copilot:
+```
+"Show me the current Nintendo Museum config status"
+```
+
+If configured correctly, Copilot will use the MCP server to retrieve and display your configuration.
+
+### Features
+
+- **Smart Processing**: Automatic date sorting, deduplication, and validation  
+- **Past Date Warnings**: Get notified when adding dates that are in the past
+- **Config Preservation**: All other settings remain untouched  
+- **Error Handling**: Clear error messages for invalid dates or URLs
+- **Status Checking**: View current configuration at any time
+
+### Troubleshooting MCP Server
+
+**MCP Server Not Found:**
+- Verify the path in your VS Code configuration is correct
+- Ensure Python and MCP dependencies are installed  
+- Restart VS Code after configuration changes
+
+**Config File Issues:**
+- Ensure `config.yaml` exists in your project root
+- Check file has proper YAML syntax and read/write permissions
+
+See the [detailed MCP server documentation](mcp_server/README.md) for complete setup instructions and troubleshooting.
 
 ## Usage
 

@@ -1,0 +1,24 @@
+# Test configuration for MCP server demo
+target_dates:
+  - "2025-10-25"
+  - "2025-10-26"
+  - "2025-10-27"
+
+polling:
+  interval_seconds: 10
+  page_load_delay_seconds: 2
+
+webhook:
+  url: "https://maker.ifttt.com/trigger/nintendo_museum_available/with/key/YOUR_IFTTT_KEY"
+  event_name: "nintendo_museum_available"
+  timeout_seconds: 30
+  heartbeat_enabled: true
+  heartbeat_interval_hours: 24
+
+website:
+  url: "https://museum-tickets.nintendo.com/en/calendar"
+  availability_class: "sale"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

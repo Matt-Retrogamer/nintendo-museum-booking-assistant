@@ -77,3 +77,20 @@ tasks:
       - task: install
       - task: lint
       - task: test
+
+  # MCP Server tasks
+  mcp-server:
+    desc: Start the MCP server for VS Code integration
+    dir: mcp_server
+    cmds:
+      - uv run python main.py
+
+  mcp-test:
+    desc: Run MCP server tests
+    cmds:
+      - uv run pytest tests/mcp_server/ -v
+
+  mcp-test-cov:
+    desc: Run MCP server tests with coverage
+    cmds:
+      - uv run pytest tests/mcp_server/ --cov=mcp_server --cov-report=html --cov-report=term
