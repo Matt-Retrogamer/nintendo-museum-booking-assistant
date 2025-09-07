@@ -658,13 +658,27 @@ cd mcp_server
 pip install -r requirements.txt
 ```
 
-#### 2. Configure VS Code
+#### 2. Configure MCP Server for GitHub Copilot
 
-The MCP server is already configured for this workspace! The configuration is stored in `.vscode/settings.json`:
+Add the Nintendo Museum MCP server to your global GitHub Copilot configuration:
+
+**Step 1: Backup your existing configuration**
+```bash
+cp "/Users/$USER/Library/Application Support/Code/User/mcp.json" "/Users/$USER/Library/Application Support/Code/User/mcp.json.backup"
+```
+
+**Step 2: Add the server configuration**
+
+Edit `/Users/$USER/Library/Application Support/Code/User/mcp.json` and add the `nintendo-museum-config` server to your existing servers:
 
 ```json
 {
-  "github.copilot.chat.mcp.servers": {
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "gallery": true
+    },
     "nintendo-museum-config": {
       "command": "uv",
       "args": [
@@ -672,17 +686,52 @@ The MCP server is already configured for this workspace! The configuration is st
         "python", 
         "mcp_server/main.py"
       ],
-      "cwd": "."
+      "cwd": "/full/path/to/your/nintendo-museum-booking-assistant"
     }
-  }
+  },
+  "inputs": []
 }
 ```
 
-This workspace-specific configuration means the MCP server will only be available when you have this project open in VS Code, keeping your global VS Code settings clean.
+**Important:** Replace `/full/path/to/your/nintendo-museum-booking-assistant` with the actual absolute path to your project directory.
+
+**Alternative: Automatic setup script**
+
+Or use this command to automatically add the configuration (replace the path):
+
+```bash
+# Replace /path/to/your/project with your actual project path
+PROJECT_PATH="/path/to/your/nintendo-museum-booking-assistant"
+
+# Backup and update MCP config
+cp "/Users/$USER/Library/Application Support/Code/User/mcp.json" "/Users/$USER/Library/Application Support/Code/User/mcp.json.backup"
+
+cat > "/Users/$USER/Library/Application Support/Code/User/mcp.json" << EOF
+{
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "gallery": true
+    },
+    "nintendo-museum-config": {
+      "command": "uv",
+      "args": [
+        "run", 
+        "python", 
+        "mcp_server/main.py"
+      ],
+      "cwd": "$PROJECT_PATH"
+    }
+  },
+  "inputs": []
+}
+EOF
+```
 
 #### 3. Restart VS Code
 
-Simply restart VS Code to load the MCP configuration. The server will be available only when this project is open.
+**Completely restart VS Code** (close and reopen) to load the new MCP server configuration. The Nintendo Museum config tools will then be available globally through GitHub Copilot.
 
 #### 4. Test the Connection
 
@@ -704,13 +753,21 @@ If configured correctly, Copilot will use the MCP server to retrieve and display
 ### Troubleshooting MCP Server
 
 **MCP Server Not Found:**
-- Verify the path in your VS Code configuration is correct
-- Ensure Python and MCP dependencies are installed  
-- Restart VS Code after configuration changes
+- **Completely restart VS Code** after adding the MCP configuration
+- **Verify the absolute project path** in `/Users/$USER/Library/Application Support/Code/User/mcp.json`
+- **Check VS Code Output panel**: View → Output → Select "GitHub Copilot" for MCP connection logs
+- **Test manually**: Run `task mcp-server` in your project directory to verify it starts
 
 **Config File Issues:**
 - Ensure `config.yaml` exists in your project root
 - Check file has proper YAML syntax and read/write permissions
+- Verify `uv` and Python dependencies are installed
+
+**Restore Configuration:**
+If something goes wrong, restore your backup:
+```bash
+cp "/Users/$USER/Library/Application Support/Code/User/mcp.json.backup" "/Users/$USER/Library/Application Support/Code/User/mcp.json"
+```
 
 See the [detailed MCP server documentation](mcp_server/README.md) for complete setup instructions and troubleshooting.
 
